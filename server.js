@@ -487,6 +487,29 @@ async function getGroqRetryDelay(response, fallbackMs) {
   return Math.min(Math.max(retryMs || fallbackMs, 1000), 30000);
 }
 
+// Keep Groq requests below the shared on-demand TPM ceiling.
+// The estimate includes a safety margin for message framing and tokenizer variance.
+function getSafeCompletionTokenLimit(systemText, promptText, requestedLimit) {
+  const inputCharacters =
+    String(systemText || "").length +
+    String(promptText || "").length +
+    1200;
+
+  const estimatedInputTokens = Math.ceil(inputCharacters / 3.7);
+  const safeRequestBudget = 7400;
+  const safetyMargin = 300;
+  const availableCompletionTokens =
+    safeRequestBudget - estimatedInputTokens - safetyMargin;
+
+  if (availableCompletionTokens < 256) {
+    throw new Error(
+      "This ticket contains too much conversation or policy context for the current AI request limit. Please shorten the pasted conversation and try again."
+    );
+  }
+
+  return Math.min(requestedLimit, availableCompletionTokens);
+}
+
 // =====================================
 // GROQ API WITH RETRY
 // =====================================
@@ -497,6 +520,12 @@ async function callGroqWithRetry(
   systemInstruction = null
 ) {
   const delays = [1500, 3000, 10000];
+  const systemText = systemInstruction || buildDraftSystemPrompt(mode);
+  const completionTokenLimit = getSafeCompletionTokenLimit(
+    systemText,
+    prompt,
+    1024
+  );
 
   for (let attempt = 0; attempt <= delays.length; attempt++) {
     console.log(`Groq request attempt ${attempt + 1}/3`);
@@ -517,8 +546,7 @@ async function callGroqWithRetry(
             messages: [
               {
                 role: "system",
-                content:
-                  systemInstruction || buildDraftSystemPrompt(mode)
+                content: systemText
               },
               {
                 role: "user",
@@ -526,7 +554,7 @@ async function callGroqWithRetry(
               }
             ],
             temperature: 0.4,
-            max_tokens: 2048
+            max_tokens: completionTokenLimit
           }),
           signal: AbortSignal.timeout(45000)
         }
@@ -578,6 +606,11 @@ async function callGroqConversationWithRetry(
   systemInstruction
 ) {
   const delays = [1500, 3000];
+  const completionTokenLimit = getSafeCompletionTokenLimit(
+    systemInstruction,
+    JSON.stringify(messages),
+    700
+  );
 
   for (let attempt = 0; attempt <= delays.length; attempt++) {
     console.log(`Groq conversation attempt ${attempt + 1}/3`);
@@ -603,7 +636,7 @@ async function callGroqConversationWithRetry(
               ...messages
             ],
             temperature: 0.4,
-            max_tokens: 700
+            max_tokens: completionTokenLimit
           }),
           signal: AbortSignal.timeout(45000)
         }
