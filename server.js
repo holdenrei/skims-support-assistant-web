@@ -37,6 +37,10 @@ try {
 const PORT = Number(process.env.PORT || 8787);
 const API_KEY = process.env.GROQ_API_KEY;
 const MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+const APP_ACCESS_PASSWORD = process.env.APP_ACCESS_PASSWORD || "";
+const APP_ORIGIN = (process.env.APP_ORIGIN || "").replace(/\\/$/, "");
+const sessions = new Map();
+const SESSION_TTL_MS = 12 * 60 * 60 * 1000;
 
 const MAX_BODY_SIZE = 5_000_000;
 const importJobs = new Map();
@@ -78,8 +82,9 @@ EMAIL FORMAT:
 - End naturally after the resolution or next step.
 
 LIVE CHAT FORMAT:
-- ALWAYS begin generated Live Chat responses with: "Thanks for patiently waiting!"
-- Immediately continue with a concern-specific acknowledgment and appropriate empathy.
+- Do NOT automatically begin every response with "Thanks for patiently waiting!".
+- Use that phrase only when the customer was asked to wait, was on hold, experienced a meaningful delay, or the agent specifically requests it.
+- Otherwise, acknowledge the customer’s latest concern directly and naturally.
 - Write like a real-time chat agent, not an email.
 - Use conversational wording, short sentences, and compact paragraphs.
 - Address the customer's latest message directly.
@@ -352,25 +357,15 @@ function sendJson(res, statusCode, data) {
 const server = http.createServer(async (req, res) => {
   const origin = req.headers.origin || "";
 
-  const allowedLocalOrigins = new Set([
-    "http://127.0.0.1:8788",
-    "http://localhost:8788"
-  ]);
-
-  const isKustomerOrigin =
-    /^https:\/\/[a-z0-9-]+\.kustomerapp\.com$/i.test(origin);
-
-  if (
-    allowedLocalOrigins.has(origin) ||
-    isKustomerOrigin ||
-    /^chrome-extension:\/\/[a-p]{32}$/.test(origin)
-  ) {
+  const allowedLocalOrigins = new Set(["http://127.0.0.1:8788","http://localhost:8788"]);
+  const isKustomerOrigin = /^https:\/\/[a-z0-9-]+\.kustomerapp\.com$/i.test(origin);
+  const isAllowedWebsiteOrigin = allowedLocalOrigins.has(origin) || (!!APP_ORIGIN && origin === APP_ORIGIN);
+  if (isAllowedWebsiteOrigin || isKustomerOrigin || /^chrome-extension:\/\/[a-p]{32}$/.test(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Vary", "Origin");
   }
-
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
   if (
     req.headers["access-control-request-private-network"] === "true"
@@ -391,11 +386,13 @@ const server = http.createServer(async (req, res) => {
   // IMPORT STATUS
   // =====================================
 
+  const bearer = String(req.headers.authorization || "").replace(/^Bearer\\s+/i, "");
+  const activeSession = bearer ? sessions.get(bearer) : null;
+  if (activeSession && activeSession.expiresAt < Date.now()) sessions.delete(bearer);
+
   if (req.method === "GET" && route === "/import/status") {
-    if (!allowedLocalOrigins.has(origin)) {
-      return sendJson(res, 403, {
-        error: "Local website origin required."
-      });
+    if (!activeSession || activeSession.expiresAt < Date.now()) {
+      return sendJson(res, 401, { error: "Please sign in again." });
     }
 
     const ticketId = new URL(
@@ -489,6 +486,28 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
+  // Serve the standalone website from this same Render service.
+  if (req.method === "GET" && !route.startsWith("/import/") && route !== "/health") {
+    let requested;
+    try { requested = route === "/" ? "index.html" : decodeURIComponent(route.replace(/^\\/+/, "")); }
+    catch { res.writeHead(400); return res.end("Bad request"); }
+    const root = path.resolve(__dirname);
+    const filePath = path.resolve(root, requested);
+    if (filePath !== root && !filePath.startsWith(root + path.sep)) {
+      res.writeHead(403); return res.end("Forbidden");
+    }
+    const types = { ".html":"text/html; charset=utf-8", ".css":"text/css; charset=utf-8",
+      ".js":"text/javascript; charset=utf-8", ".json":"application/json; charset=utf-8",
+      ".txt":"text/plain; charset=utf-8", ".svg":"image/svg+xml" };
+    return fs.readFile(filePath, (err, content) => {
+      if (err) { res.writeHead(404, {"Content-Type":"text/plain; charset=utf-8"}); return res.end("Not found"); }
+      res.writeHead(200, {"Content-Type":types[path.extname(filePath)] || "application/octet-stream",
+        "X-Content-Type-Options":"nosniff", "Cache-Control":path.extname(filePath)===".html"?"no-cache":"public, max-age=300"});
+      res.end(content);
+    });
+  }
+  if (req.method === "GET" && route === "/health") return sendJson(res, 200, {status:"ok"});
+
   // =====================================
   // ALLOWED POST ROUTES
   // =====================================
@@ -499,6 +518,7 @@ const server = http.createServer(async (req, res) => {
     "/refine",
     "/insight",
     "/insight-chat",
+    "/auth/login",
     "/import/request",
     "/import/complete",
     "/import/cancel"
@@ -552,6 +572,18 @@ const server = http.createServer(async (req, res) => {
 
     try {
       const body = JSON.parse(raw || "{}");
+
+      if (route === "/auth/login") {
+        if (!APP_ACCESS_PASSWORD) return sendJson(res, 503, {error:"Website access is not configured. Set APP_ACCESS_PASSWORD in Render."});
+        if (typeof body.password !== "string" || body.password !== APP_ACCESS_PASSWORD)
+          return sendJson(res, 401, {error:"Incorrect access password."});
+        const sessionToken = crypto.randomBytes(32).toString("hex");
+        sessions.set(sessionToken, {expiresAt:Date.now()+SESSION_TTL_MS});
+        return sendJson(res, 200, {token:sessionToken, expiresInSeconds:SESSION_TTL_MS/1000});
+      }
+
+      if (route !== "/import/complete" && (!activeSession || activeSession.expiresAt < Date.now()))
+        return sendJson(res, 401, {error:"Please sign in to use the SKIMS Support Assistant."});
 
       // =====================================
       // CANCEL IMPORT
@@ -1245,8 +1277,6 @@ Generate only the selected response format.`;
 // START SERVER
 // =====================================
 
-server.listen(PORT, "127.0.0.1", () => {
-  console.log(
-    `SKIMS drafting service (Groq) listening on http://127.0.0.1:${PORT}`
-  );
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`SKIMS Support Assistant listening on port ${PORT}`);
 });
