@@ -78,6 +78,16 @@
         <span>YOUR TICKETS</span>
         <span id="ticketCount">0 / 5</span>
       </div>
+      <div class="ticket-bulk-tools" aria-label="Bulk ticket deletion">
+        <label class="select-all-tickets" id="selectAllTickets">
+          <input type="checkbox" id="selectAllCheckbox">
+          <span>Select all</span>
+        </label>
+        <span class="selection-count" id="selectionCount">Select tickets to remove</span>
+        <button type="button" class="delete-selected-btn" id="deleteSelectedTickets" disabled>
+          Delete selected
+        </button>
+      </div>
       <div id="ticketNav" class="ticket-nav"></div>
       <div class="rail-note">
         <span class="spark">✦</span>
