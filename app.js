@@ -877,7 +877,7 @@ function bindCard(card, t) {
       });
 
       t.importStatus = popup
-        ? "Kustomer opened in a new tab. On that tab, click your SKIMS Import bookmark. Keep this panel open while it imports."
+        ? "Kustomer opened in a new tab. On that tab, click your SKIMS Import bookmark. Keep this website open while it imports."
         : "Open this Kustomer URL in another tab, then click your SKIMS Import bookmark.";
 
       t.status = "pending";
