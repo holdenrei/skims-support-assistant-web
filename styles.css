@@ -2380,3 +2380,83 @@ input:focus {
     max-height: calc(100vh - 18px);
   }
 }
+
+
+/* =========================================
+   FIXED AI WINDOWS — VERTICAL RESIZE ONLY
+   Keep the original corner positions. Users
+   can pull the bottom edge downward to expand.
+========================================= */
+.insight-popover,
+.insight-chat-popover {
+  position: fixed !important;
+  left: auto !important;
+  resize: vertical !important;
+  min-width: 0 !important;
+  min-height: 280px;
+  max-height: calc(100vh - 90px);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Keep the insight content readable inside its
+   fixed frame while the outer window grows. */
+.insight-popover {
+  display: flex;
+  flex-direction: column;
+  height: min(62vh, 620px);
+}
+
+.insight-popover-head,
+.insight-status,
+.insight-actions {
+  flex: 0 0 auto;
+}
+
+.insight-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none !important;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* The chat frame grows vertically while the
+   message history uses the newly available space. */
+.insight-chat-popover {
+  display: flex;
+  flex-direction: column;
+  height: min(62vh, 620px);
+}
+
+.insight-chat-head,
+.insight-chat-status,
+.insight-chat-composer {
+  flex: 0 0 auto;
+}
+
+.insight-chat-messages {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none !important;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.insight-popover-head,
+.insight-chat-head {
+  cursor: default !important;
+  touch-action: auto !important;
+  user-select: text;
+}
+
+/* Narrow/side-panel layouts retain their existing
+   stacked corner placement and use a smaller default. */
+@media (max-width: 780px) {
+  .insight-popover,
+  .insight-chat-popover {
+    min-height: 220px;
+    max-height: calc(100vh - 80px);
+    height: min(42vh, 360px);
+  }
+}
