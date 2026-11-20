@@ -2224,3 +2224,129 @@ input:focus {
   .insight-item p { font-size: 12px; }
   .insight-message-text { font-size: 11px; }
 }
+
+
+/* =========================================
+   READABILITY REFINEMENT — LAPTOP FIRST
+   Keeps the existing SKIMS palette and layout.
+========================================= */
+@media (min-width: 781px) {
+  :root {
+    --floating-edge: 18px;
+    --floating-gap: 12px;
+    --floating-panel-width: clamp(340px, 31vw, 420px);
+  }
+
+  body {
+    font-size: 15px;
+    line-height: 1.65;
+  }
+
+  .workspace { gap: 24px; padding: 25px 28px 34px; }
+  .workspace { grid-template-columns: 245px minmax(0, 1fr); }
+  .rail-heading, #ticketCount { font-size: 12px; }
+  .nav-label b { font-size: 14px; }
+  .nav-label small { font-size: 12px; }
+  .ticket-head h2 { font-size: 19px; }
+  .field-section > label,
+  .import-section > label,
+  .output-label { font-size: 12px; }
+  .microcopy, .section-sub, .conversation-empty p { font-size: 12px; }
+  .section-heading h3 { font-size: 15px; }
+  .message-row p { font-size: 13px; line-height: 1.75; }
+  .generated-output { font-size: 15px; line-height: 1.75; }
+  .format-option { font-size: 13px; }
+  .btn { font-size: 14px; }
+  .status-chip { font-size: 12px; }
+
+  .insight-popover,
+  .insight-chat-popover {
+    bottom: 78px;
+    width: var(--floating-panel-width);
+    max-height: min(76vh, 720px);
+    padding: 19px;
+    border-radius: 17px;
+  }
+
+  .insight-popover-head,
+  .insight-chat-head { padding-bottom: 14px; }
+  .insight-popover-head strong,
+  .insight-chat-head strong { font-size: 17px; }
+  .insight-popover-head small,
+  .insight-chat-head small { font-size: 12px; }
+
+  .insight-content {
+    max-height: min(56vh, 540px);
+    gap: 18px;
+    padding: 18px 4px;
+  }
+
+  .insight-item strong {
+    font-size: 12px;
+    margin-bottom: 8px;
+    letter-spacing: .075em;
+  }
+
+  .insight-item p {
+    font-size: 15px;
+    line-height: 1.75;
+  }
+
+  .insight-welcome strong { font-size: 15px; }
+  .insight-welcome p { font-size: 14px; line-height: 1.7; }
+  .insight-status { font-size: 12px; line-height: 1.6; }
+  .insight-refresh,
+  .insight-chat-open,
+  .insight-send { min-height: 40px; padding: 10px 14px; font-size: 13px; }
+
+  .insight-chat-messages { gap: 12px; padding: 15px 4px 11px; }
+  .insight-message-text { padding: 12px 14px; font-size: 14px; line-height: 1.7; }
+  .insight-chat-status { font-size: 12px; }
+  .insight-chat-input { min-height: 58px; font-size: 14px; line-height: 1.6; }
+  .insight-chat-input::placeholder { font-size: 13px; }
+  .insight-composer-footer small { font-size: 11px; }
+}
+
+/* Comfortable reading and touch sizes on tablets and phones. */
+@media (max-width: 780px) {
+  body { font-size: 14px; line-height: 1.6; }
+  .ticket-head h2 { font-size: 17px; }
+  .field-section > label,
+  .import-section > label,
+  .output-label { font-size: 11px; }
+  textarea, input { font-size: 14px; line-height: 1.65; }
+  .microcopy, .section-sub { font-size: 11px; }
+  .generated-output { font-size: 14px; line-height: 1.7; }
+  .insight-popover,
+  .insight-chat-popover {
+    width: min(460px, calc(100vw - 24px));
+    right: 12px;
+    padding: 15px;
+  }
+  .insight-popover {
+    bottom: calc(68px + min(42vh, 340px) + 12px);
+    max-height: min(42vh, 340px);
+  }
+  .insight-chat-popover {
+    bottom: 68px;
+    height: min(42vh, 340px);
+    max-height: min(42vh, 340px);
+  }
+  .insight-item strong { font-size: 11px; }
+  .insight-item p { font-size: 14px; line-height: 1.65; }
+  .insight-popover-head strong,
+  .insight-chat-head strong { font-size: 15px; }
+  .insight-popover-head small,
+  .insight-chat-head small { font-size: 11px; }
+  .insight-status, .insight-chat-status { font-size: 11px; }
+  .insight-message-text { font-size: 13px; line-height: 1.6; }
+  .insight-chat-input { font-size: 14px; }
+  .insight-refresh, .insight-chat-open, .insight-send { font-size: 12px; }
+}
+
+@media (max-width: 480px) {
+  .insight-popover,
+  .insight-chat-popover { width: calc(100vw - 18px); right: 9px; }
+  .insight-item p { font-size: 13px; }
+  .insight-message-text { font-size: 12px; }
+}
