@@ -1186,25 +1186,120 @@ async function generateInsight(t) {
 // API HELPERS
 // =====================================
 
+function showLogin(message = "") {
+  const loginScreen = document.getElementById("loginScreen");
+  const appShell = document.getElementById("appShell");
+  const status = document.getElementById("loginStatus");
+  if (loginScreen) loginScreen.hidden = false;
+  if (appShell) appShell.hidden = true;
+  if (status) {
+    status.textContent = message;
+    status.classList.toggle("success", false);
+  }
+  document.getElementById("accessPassword")?.focus();
+}
+
+function showWorkspace() {
+  const loginScreen = document.getElementById("loginScreen");
+  const appShell = document.getElementById("appShell");
+  if (loginScreen) loginScreen.hidden = true;
+  if (appShell) appShell.hidden = false;
+}
+
+async function submitLogin(password) {
+  const response = await fetch("/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password })
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.token) {
+    throw new Error(data.error || "Unable to sign in. Please try again.");
+  }
+  sessionStorage.setItem(AUTH_STORAGE_KEY, data.token);
+  showWorkspace();
+}
+
+async function initializeAuthentication() {
+  const token = sessionStorage.getItem(AUTH_STORAGE_KEY);
+  if (!token) {
+    showLogin();
+    return;
+  }
+
+  try {
+    const response = await fetch("/import/status?ticketId=1", {
+      headers: { Authorization: "Bearer " + token }
+    });
+    if (response.ok) {
+      showWorkspace();
+      return;
+    }
+  } catch {}
+
+  sessionStorage.removeItem(AUTH_STORAGE_KEY);
+  showLogin("Your sign-in has expired. Please sign in again.");
+}
+
+document.getElementById("loginForm")?.addEventListener("submit", async event => {
+  event.preventDefault();
+  const input = document.getElementById("accessPassword");
+  const button = document.getElementById("loginSubmit");
+  const status = document.getElementById("loginStatus");
+  const password = input.value;
+
+  if (!password.trim()) {
+    status.textContent = "Please enter your access password.";
+    input.focus();
+    return;
+  }
+
+  button.disabled = true;
+  button.innerHTML = "<span>Signing in…</span><span aria-hidden=\"true\">→</span>";
+  status.textContent = "";
+
+  try {
+    await submitLogin(password);
+    input.value = "";
+  } catch (error) {
+    status.textContent = error.message || "Unable to sign in. Please try again.";
+    input.focus();
+  } finally {
+    button.disabled = false;
+    button.innerHTML = "<span>Sign in</span><span aria-hidden=\"true\">→</span>";
+  }
+});
+
+document.getElementById("togglePassword")?.addEventListener("click", event => {
+  const input = document.getElementById("accessPassword");
+  const button = event.currentTarget;
+  const reveal = input.type === "password";
+  input.type = reveal ? "text" : "password";
+  button.textContent = reveal ? "Hide" : "Show";
+  button.setAttribute("aria-label", reveal ? "Hide password" : "Show password");
+  button.setAttribute("aria-pressed", String(reveal));
+});
+
 async function getAccessToken() {
-  let token = sessionStorage.getItem(AUTH_STORAGE_KEY);
-  if (token) return token;
-  const password = window.prompt("Enter your SKIMS Support Assistant access password:");
-  if (password === null || !password.trim()) throw new Error("Sign-in is required.");
-  const login = await fetch("/auth/login", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password})});
-  const loginData = await login.json().catch(()=>({}));
-  if (!login.ok || !loginData.token) throw new Error(loginData.error || "Unable to sign in.");
-  token = loginData.token;
-  sessionStorage.setItem(AUTH_STORAGE_KEY, token);
+  const token = sessionStorage.getItem(AUTH_STORAGE_KEY);
+  if (!token) {
+    showLogin("Please sign in to continue.");
+    throw new Error("Sign-in is required.");
+  }
   return token;
 }
 
 async function authenticatedFetch(url, options = {}, retry = true) {
   const token = await getAccessToken();
-  const response = await fetch(url, {...options, headers:{...(options.headers||{}),Authorization:"Bearer "+token}});
-  if (response.status === 401 && retry) {
+  const response = await fetch(url, {
+    ...options,
+    headers: { ...(options.headers || {}), Authorization: "Bearer " + token }
+  });
+
+  if (response.status === 401) {
     sessionStorage.removeItem(AUTH_STORAGE_KEY);
-    return authenticatedFetch(url, options, false);
+    showLogin("Your sign-in has expired. Please sign in again.");
+    throw new Error("Your sign-in has expired. Please sign in again.");
   }
   return response;
 }
@@ -1430,3 +1525,7 @@ document.getElementById("collapseAll").addEventListener("click", () => {
 // =====================================
 
 render();
+
+
+// Show the ticket workspace only after a valid sign-in.
+initializeAuthentication();
