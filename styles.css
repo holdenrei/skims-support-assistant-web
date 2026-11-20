@@ -2016,3 +2016,211 @@ input:focus {
     text-align: center;
   }
 }
+
+
+/* =========================================
+   READABILITY UPDATE — DESKTOP / LAPTOP
+   Preserve the existing SKIMS visual design.
+========================================= */
+
+@media (min-width: 781px) {
+  :root {
+    --floating-edge: 16px;
+    --floating-gap: 12px;
+    --floating-panel-width: clamp(320px, 34vw, 440px);
+  }
+
+  body {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* Main navigation and ticket rail */
+  .brand h1 { font-size: 16px; }
+  .brand p { font-size: 12px; }
+  .privacy-pill { font-size: 11px; }
+  .tab { font-size: 13px; }
+  .tab-note { font-size: 12px; }
+  .rail-heading { font-size: 11px; }
+  #ticketCount { font-size: 12px; }
+  .nav-label b { font-size: 13px; }
+  .nav-label small { font-size: 11px; }
+  .ticket-number-badge { font-size: 13px; }
+  .rail-note b { font-size: 13px; }
+  .rail-note p { font-size: 12px; }
+
+  /* Ticket header, labels and editable fields */
+  .ticket-kicker { font-size: 11px; }
+  .ticket-head h2 { font-size: 17px; }
+  .customer-title { font-size: 14px; }
+  .status-chip { font-size: 11px; }
+  .field-section > label,
+  .import-section > label,
+  .output-label { font-size: 11px; }
+  textarea,
+  input { font-size: 14px; line-height: 1.65; }
+  textarea { padding: 13px 14px; }
+  .microcopy { font-size: 11px; }
+  .accuracy-tag { font-size: 11px; }
+  .btn { font-size: 13px; min-height: 42px; }
+  .text-btn { font-size: 12px; }
+  .section-heading h3 { font-size: 14px; }
+  .section-sub { font-size: 11px; }
+  .conversation-empty b { font-size: 13px; }
+  .conversation-empty p { font-size: 11px; }
+  .message-row strong { font-size: 12px; }
+  .message-time { font-size: 10px; }
+  .message-row p { font-size: 12px; line-height: 1.7; }
+  .message-attachment,
+  .attachment-chip { font-size: 11px; }
+  .format-option { font-size: 12px; min-height: 38px; }
+  .generated-output { font-size: 14px; line-height: 1.7; }
+  .draft-status { font-size: 12px; }
+  .clear-btn { font-size: 12px; }
+  .footer { font-size: 11px; }
+  .footer > span:first-child { font-size: 11px; }
+
+  /* Floating launcher and windows */
+  .insight-launcher {
+    padding: 12px 17px;
+    font-size: 14px;
+  }
+
+  .insight-popover {
+    right: var(--floating-edge);
+    bottom: 74px;
+    width: var(--floating-panel-width);
+    max-height: min(72vh, 680px);
+    overflow: hidden;
+    padding: 17px;
+    border-radius: 16px;
+  }
+
+  .insight-popover-head {
+    padding-bottom: 13px;
+    gap: 10px;
+  }
+
+  .insight-popover-head strong,
+  .insight-chat-head strong { font-size: 16px; }
+
+  .insight-popover-head small,
+  .insight-chat-head small { font-size: 11px; }
+
+  .insight-close,
+  .insight-chat-close {
+    width: 32px;
+    height: 32px;
+    font-size: 20px;
+  }
+
+  .insight-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: min(52vh, 500px);
+    overflow-y: auto;
+    gap: 16px;
+    padding: 16px 3px;
+  }
+
+  .insight-item strong {
+    font-size: 11px;
+    letter-spacing: .08em;
+    margin-bottom: 7px;
+  }
+
+  .insight-item p {
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .insight-welcome strong { font-size: 14px; }
+  .insight-welcome p { font-size: 13px; line-height: 1.65; }
+  .insight-status { font-size: 11px; line-height: 1.5; min-height: 16px; }
+  .insight-actions { gap: 8px; padding-top: 12px; }
+  .insight-refresh,
+  .insight-chat-open,
+  .insight-send { padding: 10px 13px; font-size: 12px; }
+
+  .insight-chat-popover {
+    right: calc(var(--floating-edge) + var(--floating-panel-width) + var(--floating-gap));
+    bottom: 74px;
+    width: var(--floating-panel-width);
+    max-height: min(72vh, 680px);
+    min-height: 0;
+    padding: 17px;
+    border-radius: 16px;
+  }
+
+  .insight-chat-head { padding-bottom: 13px; }
+  .insight-chat-messages {
+    min-height: 0;
+    gap: 11px;
+    padding: 14px 3px 10px;
+  }
+
+  .insight-message-text {
+    padding: 11px 13px;
+    font-size: 13px;
+    line-height: 1.65;
+  }
+
+  .insight-chat-status { font-size: 11px; }
+  .insight-chat-composer { margin-top: 9px; padding-top: 11px; }
+  .insight-chat-input {
+    min-height: 54px;
+    max-height: 130px;
+    padding: 11px 12px;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .insight-chat-input::placeholder { font-size: 12px; }
+  .insight-composer-footer { margin-top: 8px; gap: 8px; }
+  .insight-composer-footer small { font-size: 10px; }
+  .insight-send { min-width: 68px; }
+}
+
+/* On smaller screens, keep the same visual style while stacking panels
+   and retaining comfortable touch/read sizes. */
+@media (max-width: 780px) {
+  body { font-size: 14px; }
+  .field-section > label,
+  .import-section > label,
+  .output-label { font-size: 10px; }
+  textarea,
+  input { font-size: 13px; }
+  .message-row p { font-size: 12px; }
+  .insight-popover,
+  .insight-chat-popover {
+    width: min(460px, calc(100vw - 24px));
+    max-height: min(42vh, 360px);
+    padding: 14px;
+  }
+  .insight-content {
+    max-height: min(28vh, 250px);
+    overflow-y: auto;
+    gap: 12px;
+  }
+  .insight-item strong { font-size: 10px; }
+  .insight-item p { font-size: 13px; line-height: 1.6; }
+  .insight-popover-head strong,
+  .insight-chat-head strong { font-size: 14px; }
+  .insight-popover-head small,
+  .insight-chat-head small { font-size: 10px; }
+  .insight-status { font-size: 10px; }
+  .insight-message-text { font-size: 12px; line-height: 1.55; }
+  .insight-chat-input { font-size: 13px; }
+}
+
+/* Extra-small phones: prevent the floating windows from becoming
+   cramped; their existing stacked layout is retained. */
+@media (max-width: 480px) {
+  .insight-popover,
+  .insight-chat-popover {
+    width: calc(100vw - 18px);
+    right: 9px;
+    padding: 12px;
+  }
+  .insight-item p { font-size: 12px; }
+  .insight-message-text { font-size: 11px; }
+}
