@@ -38,6 +38,7 @@ The bookmarklet uses the authenticated Kustomer page session and a short-lived, 
 ## Security and limitations
 - Never commit `.env`, API keys, passwords, cookies, or customer conversation exports.
 - Website API endpoints require the private app password session. Import completion requires the one-time job token.
+- Ticket conversations, notes, drafts, and insight history are saved in this browser's local storage until the user clears the ticket or browser site data. Do not use shared/public browser profiles.
 - Import jobs and login sessions are held in server memory; a restart or redeploy clears them. Use one Render instance.
 - The importer is read-only and does not send replies or modify Kustomer records.
 - Confirm your employer permits the workflow and AI processing before using real customer data.
