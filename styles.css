@@ -2350,3 +2350,33 @@ input:focus {
   .insight-item p { font-size: 13px; }
   .insight-message-text { font-size: 12px; }
 }
+
+
+/* Floating AI windows: resize with the lower-right grip. */
+.insight-popover,
+.insight-chat-popover {
+  resize: both;
+  min-width: 320px;
+  min-height: 260px;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.insight-popover-head,
+.insight-chat-head {
+  user-select: none;
+  cursor: grab;
+  touch-action: none;
+}
+
+@media (max-width: 780px) {
+  .insight-popover,
+  .insight-chat-popover {
+    min-width: min(280px, calc(100vw - 24px));
+    min-height: 220px;
+    max-width: calc(100vw - 18px);
+    max-height: calc(100vh - 18px);
+  }
+}
