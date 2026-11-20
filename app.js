@@ -483,9 +483,7 @@ function renderInsight(card, t) {
     const sections = [
       ["SUMMARY", t.insight.summary],
       ["CUSTOMER'S MAIN CONCERN", t.insight.customerConcern],
-      ["SUGGESTED RESOLUTION", t.insight.suggestedResolution],
-      ["RECOMMENDED NEXT STEP", t.insight.recommendedNextStep],
-      ["INFORMATION TO VERIFY", t.insight.missingInformation]
+      ["SUGGESTED RESOLUTION", t.insight.suggestedResolution]
     ];
 
     sections.forEach(([heading, value]) => {
@@ -511,7 +509,7 @@ function renderInsight(card, t) {
 
     const paragraph = document.createElement("p");
     paragraph.textContent =
-      "Import a customer conversation to generate a structured case analysis.";
+      "Import the full conversation to identify the customer's current concern and the most appropriate policy-based resolution.";
 
     welcome.append(heading, paragraph);
     content.append(welcome);
@@ -584,7 +582,7 @@ function renderInsight(card, t) {
 
   } else if (t.insightStale) {
     status.textContent =
-      "Your case notes have changed. Reanalyze the case to update the recommendations.";
+      "Your conversation or agent notes have changed. Refresh the insight to update the case analysis.";
 
     status.className = "insight-status stale";
 
