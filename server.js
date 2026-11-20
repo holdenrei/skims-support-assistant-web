@@ -606,7 +606,10 @@ async function callGroqWithRetry(
               }
             ],
             temperature: 0.4,
-            max_tokens: completionTokenLimit
+            max_completion_tokens: completionTokenLimit,
+            ...(MODEL.startsWith("openai/gpt-oss-")
+              ? { reasoning_effort: "low" }
+              : {})
           }),
           signal: AbortSignal.timeout(45000)
         }
@@ -688,7 +691,10 @@ async function callGroqConversationWithRetry(
               ...messages
             ],
             temperature: 0.4,
-            max_tokens: completionTokenLimit
+            max_completion_tokens: completionTokenLimit,
+            ...(MODEL.startsWith("openai/gpt-oss-")
+              ? { reasoning_effort: "low" }
+              : {})
           }),
           signal: AbortSignal.timeout(45000)
         }
@@ -1634,11 +1640,32 @@ Generate only the requested deliverable for the intended audience. The selected 
         );
       }
 
+      const choice = result.choices?.[0];
       const email =
-        result.choices?.[0]?.message?.content?.trim();
+        typeof choice?.message?.content === "string"
+          ? choice.message.content.trim()
+          : "";
 
       if (!email) {
-        throw new Error("Groq returned an empty response.");
+        console.error(
+          "Groq returned no visible draft text:",
+          JSON.stringify({
+            model: MODEL,
+            finish_reason: choice?.finish_reason || null,
+            usage: result.usage || null,
+            message_fields: Object.keys(choice?.message || {})
+          })
+        );
+
+        if (choice?.finish_reason === "length") {
+          throw new Error(
+            "Groq used the available completion budget for internal reasoning before producing the draft. Please retry; the request settings have been adjusted to prioritize a visible response."
+          );
+        }
+
+        throw new Error(
+          `Groq returned no draft text (finish reason: ${choice?.finish_reason || "unknown"}).`
+        );
       }
 
       return sendJson(res, 200, {
