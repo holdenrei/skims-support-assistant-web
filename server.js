@@ -544,7 +544,7 @@ function getSafeCompletionTokenLimit(systemText, promptText, requestedLimit) {
     String(systemText || "").length +
     String(promptText || "").length;
 
-  const estimatedInputTokens = Math.ceil(inputCharacters / 4.6) + 600;
+  const estimatedInputTokens = Math.ceil(inputCharacters / 5.0) + 250;
   const safeRequestBudget = 7600;
   const safetyMargin = 300;
   const availableCompletionTokens =
