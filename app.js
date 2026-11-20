@@ -877,8 +877,8 @@ function bindCard(card, t) {
       });
 
       t.importStatus = popup
-        ? "Kustomer opened in a new tab. On that tab, click your SKIMS Import bookmark. Keep this website open while it imports."
-        : "Open this Kustomer URL in another tab, then click your SKIMS Import bookmark.";
+        ? "Kustomer opened in a new tab. On that tab, click your SKIMS Import bookmark to securely send the conversation to this website. Keep this page open while it imports."
+        : "Open this Kustomer URL in another tab, then click your SKIMS Import bookmark. The bookmark sends the conversation directly to this hosted website.";
 
       t.status = "pending";
 
@@ -1402,7 +1402,7 @@ async function waitForImport(t) {
     : "empty";
 
   t.importStatus =
-    "Import is still waiting. Run the SKIMS Import bookmarklet in the matching Kustomer tab and select this ticket, then try again if the request has expired.";
+    "Import is still waiting. In the matching Kustomer tab, click your SKIMS Import bookmark. If the request has expired, start the import again from this website.";
 
   saveTicketData();
   render();
