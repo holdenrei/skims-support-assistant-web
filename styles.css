@@ -2601,3 +2601,70 @@ input:focus {
   border-color: #d8aaa8;
   background: #fff4f2;
 }
+
+
+/* =========================================
+   FIT & SIZING ASSISTANT
+========================================= */
+.sizing-assistant-section {
+  margin: 18px 0;
+  padding: 15px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fffdfc;
+}
+.sizing-assistant-section > summary {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.sizing-assistant-section > .microcopy {
+  margin: 9px 0 13px;
+  line-height: 1.55;
+}
+.sizing-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 11px;
+}
+.sizing-field { min-width: 0; }
+.sizing-field label {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .045em;
+}
+.sizing-field input,
+.sizing-field select {
+  width: 100%;
+  min-height: 39px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+.sizing-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin-top: 13px;
+}
+.sizing-actions a {
+  color: var(--accent-dark);
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.sizing-actions a:hover { text-decoration: underline; }
+.sizing-status { margin: 9px 0 0; color: var(--muted); font-size: 11px; }
+@media (max-width: 560px) {
+  .sizing-fields { grid-template-columns: 1fr; }
+}
