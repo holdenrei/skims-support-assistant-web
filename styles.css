@@ -1803,3 +1803,868 @@ input:focus {
     font-size: 8px;
   }
 }
+
+
+/* =========================================
+   MINIMAL SKIMS-INSPIRED SIGN-IN
+========================================= */
+
+.login-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 22px 0;
+  background:
+    radial-gradient(ellipse at 50% 34%, rgba(244, 232, 230, .72), transparent 48%),
+    var(--bg);
+}
+
+.login-card {
+  width: min(100%, 430px);
+  margin: auto 0;
+  padding: 46px 48px 38px;
+  border: 1px solid rgba(234, 213, 210, .78);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, .88);
+  box-shadow: 0 18px 55px rgba(65, 43, 48, .055);
+}
+
+.login-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 48px;
+}
+
+.login-wordmark {
+  color: #49383e;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 39px;
+  font-weight: 500;
+  letter-spacing: 5px;
+  line-height: 1.1;
+}
+
+.login-brand-rule {
+  width: 30px;
+  height: 1px;
+  margin: 14px 0 9px;
+  background: #c8a7a5;
+}
+
+.login-brand-caption,
+.login-eyebrow {
+  color: #9b8588;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: .19em;
+}
+
+.login-intro {
+  margin-bottom: 29px;
+  text-align: center;
+}
+
+.login-intro h1 {
+  margin: 12px 0 8px;
+  color: #44383c;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 31px;
+  font-weight: 400;
+  letter-spacing: -.6px;
+}
+
+.login-intro p {
+  margin: 0;
+  color: #938488;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.login-form > label {
+  color: #79676c;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+
+.password-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-field input {
+  min-height: 48px;
+  padding: 12px 62px 12px 14px;
+  border: 1px solid #e9dfdd;
+  border-radius: 2px;
+  background: #fffdfc;
+  font-size: 12px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  padding: 5px;
+  border: 0;
+  background: transparent;
+  color: #947078;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.password-toggle:hover {
+  color: #684d55;
+}
+
+.login-status {
+  min-height: 16px;
+  margin: 0;
+  color: #b65d5d;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.login-status.success {
+  color: #6c927b;
+}
+
+.login-submit {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 2px;
+  padding: 0 17px;
+  border: 1px solid #947078;
+  border-radius: 2px;
+  background: #947078;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: .04em;
+  cursor: pointer;
+  transition: background .2s ease, border-color .2s ease;
+}
+
+.login-submit:hover:not(:disabled) {
+  border-color: #805d65;
+  background: #805d65;
+}
+
+.login-submit:disabled {
+  opacity: .65;
+  cursor: wait;
+}
+
+.login-security {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 28px;
+  color: #a29295;
+  font-size: 9px;
+  text-align: center;
+}
+
+.security-mark {
+  color: #b8895b;
+  font-size: 13px;
+}
+
+.login-footer {
+  width: 100%;
+  max-width: 1600px;
+  margin-top: 36px;
+}
+
+@media (max-width: 560px) {
+  .login-screen {
+    justify-content: flex-start;
+    padding: 34px 16px 0;
+  }
+
+  .login-card {
+    margin: auto 0;
+    padding: 38px 25px 30px;
+  }
+
+  .login-brand {
+    margin-bottom: 38px;
+  }
+
+  .login-intro h1 {
+    font-size: 28px;
+  }
+
+  .login-footer {
+    align-items: center;
+    gap: 7px;
+    padding: 18px 10px;
+    text-align: center;
+  }
+}
+
+
+/* =========================================
+   READABILITY UPDATE — DESKTOP / LAPTOP
+   Preserve the existing SKIMS visual design.
+========================================= */
+
+@media (min-width: 781px) {
+  :root {
+    --floating-edge: 16px;
+    --floating-gap: 12px;
+    --floating-panel-width: clamp(320px, 34vw, 440px);
+  }
+
+  body {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* Main navigation and ticket rail */
+  .brand h1 { font-size: 16px; }
+  .brand p { font-size: 12px; }
+  .privacy-pill { font-size: 11px; }
+  .tab { font-size: 13px; }
+  .tab-note { font-size: 12px; }
+  .rail-heading { font-size: 11px; }
+  #ticketCount { font-size: 12px; }
+  .nav-label b { font-size: 13px; }
+  .nav-label small { font-size: 11px; }
+  .ticket-number-badge { font-size: 13px; }
+  .rail-note b { font-size: 13px; }
+  .rail-note p { font-size: 12px; }
+
+  /* Ticket header, labels and editable fields */
+  .ticket-kicker { font-size: 11px; }
+  .ticket-head h2 { font-size: 17px; }
+  .customer-title { font-size: 14px; }
+  .status-chip { font-size: 11px; }
+  .field-section > label,
+  .import-section > label,
+  .output-label { font-size: 11px; }
+  textarea,
+  input { font-size: 14px; line-height: 1.65; }
+  textarea { padding: 13px 14px; }
+  .microcopy { font-size: 11px; }
+  .accuracy-tag { font-size: 11px; }
+  .btn { font-size: 13px; min-height: 42px; }
+  .text-btn { font-size: 12px; }
+  .section-heading h3 { font-size: 14px; }
+  .section-sub { font-size: 11px; }
+  .conversation-empty b { font-size: 13px; }
+  .conversation-empty p { font-size: 11px; }
+  .message-row strong { font-size: 12px; }
+  .message-time { font-size: 10px; }
+  .message-row p { font-size: 12px; line-height: 1.7; }
+  .message-attachment,
+  .attachment-chip { font-size: 11px; }
+  .format-option { font-size: 12px; min-height: 38px; }
+  .generated-output { font-size: 14px; line-height: 1.7; }
+  .draft-status { font-size: 12px; }
+  .clear-btn { font-size: 12px; }
+  .footer { font-size: 11px; }
+  .footer > span:first-child { font-size: 11px; }
+
+  /* Floating launcher and windows */
+  .insight-launcher {
+    padding: 12px 17px;
+    font-size: 14px;
+  }
+
+  .insight-popover {
+    right: var(--floating-edge);
+    bottom: 74px;
+    width: var(--floating-panel-width);
+    max-height: min(72vh, 680px);
+    overflow: hidden;
+    padding: 17px;
+    border-radius: 16px;
+  }
+
+  .insight-popover-head {
+    padding-bottom: 13px;
+    gap: 10px;
+  }
+
+  .insight-popover-head strong,
+  .insight-chat-head strong { font-size: 16px; }
+
+  .insight-popover-head small,
+  .insight-chat-head small { font-size: 11px; }
+
+  .insight-close,
+  .insight-chat-close {
+    width: 32px;
+    height: 32px;
+    font-size: 20px;
+  }
+
+  .insight-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: min(52vh, 500px);
+    overflow-y: auto;
+    gap: 16px;
+    padding: 16px 3px;
+  }
+
+  .insight-item strong {
+    font-size: 11px;
+    letter-spacing: .08em;
+    margin-bottom: 7px;
+  }
+
+  .insight-item p {
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .insight-welcome strong { font-size: 14px; }
+  .insight-welcome p { font-size: 13px; line-height: 1.65; }
+  .insight-status { font-size: 11px; line-height: 1.5; min-height: 16px; }
+  .insight-actions { gap: 8px; padding-top: 12px; }
+  .insight-refresh,
+  .insight-chat-open,
+  .insight-send { padding: 10px 13px; font-size: 12px; }
+
+  .insight-chat-popover {
+    right: calc(var(--floating-edge) + var(--floating-panel-width) + var(--floating-gap));
+    bottom: 74px;
+    width: var(--floating-panel-width);
+    max-height: min(72vh, 680px);
+    min-height: 0;
+    padding: 17px;
+    border-radius: 16px;
+  }
+
+  .insight-chat-head { padding-bottom: 13px; }
+  .insight-chat-messages {
+    min-height: 0;
+    gap: 11px;
+    padding: 14px 3px 10px;
+  }
+
+  .insight-message-text {
+    padding: 11px 13px;
+    font-size: 13px;
+    line-height: 1.65;
+  }
+
+  .insight-chat-status { font-size: 11px; }
+  .insight-chat-composer { margin-top: 9px; padding-top: 11px; }
+  .insight-chat-input {
+    min-height: 54px;
+    max-height: 130px;
+    padding: 11px 12px;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .insight-chat-input::placeholder { font-size: 12px; }
+  .insight-composer-footer { margin-top: 8px; gap: 8px; }
+  .insight-composer-footer small { font-size: 10px; }
+  .insight-send { min-width: 68px; }
+}
+
+/* On smaller screens, keep the same visual style while stacking panels
+   and retaining comfortable touch/read sizes. */
+@media (max-width: 780px) {
+  body { font-size: 14px; }
+  .field-section > label,
+  .import-section > label,
+  .output-label { font-size: 10px; }
+  textarea,
+  input { font-size: 13px; }
+  .message-row p { font-size: 12px; }
+  .insight-popover,
+  .insight-chat-popover {
+    width: min(460px, calc(100vw - 24px));
+    max-height: min(42vh, 360px);
+    padding: 14px;
+  }
+  .insight-content {
+    max-height: min(28vh, 250px);
+    overflow-y: auto;
+    gap: 12px;
+  }
+  .insight-item strong { font-size: 10px; }
+  .insight-item p { font-size: 13px; line-height: 1.6; }
+  .insight-popover-head strong,
+  .insight-chat-head strong { font-size: 14px; }
+  .insight-popover-head small,
+  .insight-chat-head small { font-size: 10px; }
+  .insight-status { font-size: 10px; }
+  .insight-message-text { font-size: 12px; line-height: 1.55; }
+  .insight-chat-input { font-size: 13px; }
+}
+
+/* Extra-small phones: prevent the floating windows from becoming
+   cramped; their existing stacked layout is retained. */
+@media (max-width: 480px) {
+  .insight-popover,
+  .insight-chat-popover {
+    width: calc(100vw - 18px);
+    right: 9px;
+    padding: 12px;
+  }
+  .insight-item p { font-size: 12px; }
+  .insight-message-text { font-size: 11px; }
+}
+
+
+/* =========================================
+   READABILITY REFINEMENT — LAPTOP FIRST
+   Keeps the existing SKIMS palette and layout.
+========================================= */
+@media (min-width: 781px) {
+  :root {
+    --floating-edge: 18px;
+    --floating-gap: 12px;
+    --floating-panel-width: clamp(340px, 31vw, 420px);
+  }
+
+  body {
+    font-size: 15px;
+    line-height: 1.65;
+  }
+
+  .workspace { gap: 24px; padding: 25px 28px 34px; }
+  .workspace { grid-template-columns: 245px minmax(0, 1fr); }
+  .rail-heading, #ticketCount { font-size: 12px; }
+  .nav-label b { font-size: 14px; }
+  .nav-label small { font-size: 12px; }
+  .ticket-head h2 { font-size: 19px; }
+  .field-section > label,
+  .import-section > label,
+  .output-label { font-size: 12px; }
+  .microcopy, .section-sub, .conversation-empty p { font-size: 12px; }
+  .section-heading h3 { font-size: 15px; }
+  .message-row p { font-size: 13px; line-height: 1.75; }
+  .generated-output { font-size: 15px; line-height: 1.75; }
+  .format-option { font-size: 13px; }
+  .btn { font-size: 14px; }
+  .status-chip { font-size: 12px; }
+
+  .insight-popover,
+  .insight-chat-popover {
+    bottom: 78px;
+    width: var(--floating-panel-width);
+    max-height: min(76vh, 720px);
+    padding: 19px;
+    border-radius: 17px;
+  }
+
+  .insight-popover-head,
+  .insight-chat-head { padding-bottom: 14px; }
+  .insight-popover-head strong,
+  .insight-chat-head strong { font-size: 17px; }
+  .insight-popover-head small,
+  .insight-chat-head small { font-size: 12px; }
+
+  .insight-content {
+    max-height: min(56vh, 540px);
+    gap: 18px;
+    padding: 18px 4px;
+  }
+
+  .insight-item strong {
+    font-size: 12px;
+    margin-bottom: 8px;
+    letter-spacing: .075em;
+  }
+
+  .insight-item p {
+    font-size: 15px;
+    line-height: 1.75;
+  }
+
+  .insight-welcome strong { font-size: 15px; }
+  .insight-welcome p { font-size: 14px; line-height: 1.7; }
+  .insight-status { font-size: 12px; line-height: 1.6; }
+  .insight-refresh,
+  .insight-chat-open,
+  .insight-send { min-height: 40px; padding: 10px 14px; font-size: 13px; }
+
+  .insight-chat-messages { gap: 12px; padding: 15px 4px 11px; }
+  .insight-message-text { padding: 12px 14px; font-size: 14px; line-height: 1.7; }
+  .insight-chat-status { font-size: 12px; }
+  .insight-chat-input { min-height: 58px; font-size: 14px; line-height: 1.6; }
+  .insight-chat-input::placeholder { font-size: 13px; }
+  .insight-composer-footer small { font-size: 11px; }
+}
+
+/* Comfortable reading and touch sizes on tablets and phones. */
+@media (max-width: 780px) {
+  body { font-size: 14px; line-height: 1.6; }
+  .ticket-head h2 { font-size: 17px; }
+  .field-section > label,
+  .import-section > label,
+  .output-label { font-size: 11px; }
+  textarea, input { font-size: 14px; line-height: 1.65; }
+  .microcopy, .section-sub { font-size: 11px; }
+  .generated-output { font-size: 14px; line-height: 1.7; }
+  .insight-popover,
+  .insight-chat-popover {
+    width: min(460px, calc(100vw - 24px));
+    right: 12px;
+    padding: 15px;
+  }
+  .insight-popover {
+    bottom: calc(68px + min(42vh, 340px) + 12px);
+    max-height: min(42vh, 340px);
+  }
+  .insight-chat-popover {
+    bottom: 68px;
+    height: min(42vh, 340px);
+    max-height: min(42vh, 340px);
+  }
+  .insight-item strong { font-size: 11px; }
+  .insight-item p { font-size: 14px; line-height: 1.65; }
+  .insight-popover-head strong,
+  .insight-chat-head strong { font-size: 15px; }
+  .insight-popover-head small,
+  .insight-chat-head small { font-size: 11px; }
+  .insight-status, .insight-chat-status { font-size: 11px; }
+  .insight-message-text { font-size: 13px; line-height: 1.6; }
+  .insight-chat-input { font-size: 14px; }
+  .insight-refresh, .insight-chat-open, .insight-send { font-size: 12px; }
+}
+
+@media (max-width: 480px) {
+  .insight-popover,
+  .insight-chat-popover { width: calc(100vw - 18px); right: 9px; }
+  .insight-item p { font-size: 13px; }
+  .insight-message-text { font-size: 12px; }
+}
+
+
+/* Floating AI windows: resize with the lower-right grip. */
+.insight-popover,
+.insight-chat-popover {
+  resize: both;
+  min-width: 320px;
+  min-height: 260px;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.insight-popover-head,
+.insight-chat-head {
+  user-select: none;
+  cursor: grab;
+  touch-action: none;
+}
+
+@media (max-width: 780px) {
+  .insight-popover,
+  .insight-chat-popover {
+    min-width: min(280px, calc(100vw - 24px));
+    min-height: 220px;
+    max-width: calc(100vw - 18px);
+    max-height: calc(100vh - 18px);
+  }
+}
+
+
+/* =========================================
+   FIXED AI WINDOWS — VERTICAL RESIZE ONLY
+   Keep the original corner positions. Users
+   can pull the bottom edge downward to expand.
+========================================= */
+.insight-popover,
+.insight-chat-popover {
+  position: fixed !important;
+  left: auto !important;
+  resize: vertical !important;
+  min-width: 0 !important;
+  min-height: 280px;
+  max-height: calc(100vh - 90px);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Keep the insight content readable inside its
+   fixed frame while the outer window grows. */
+.insight-popover {
+  display: flex;
+  flex-direction: column;
+  height: min(62vh, 620px);
+}
+
+.insight-popover-head,
+.insight-status,
+.insight-actions {
+  flex: 0 0 auto;
+}
+
+.insight-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none !important;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* The chat frame grows vertically while the
+   message history uses the newly available space. */
+.insight-chat-popover {
+  display: flex;
+  flex-direction: column;
+  height: min(62vh, 620px);
+}
+
+.insight-chat-head,
+.insight-chat-status,
+.insight-chat-composer {
+  flex: 0 0 auto;
+}
+
+.insight-chat-messages {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none !important;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.insight-popover-head,
+.insight-chat-head {
+  cursor: default !important;
+  touch-action: auto !important;
+  user-select: text;
+}
+
+/* Narrow/side-panel layouts retain their existing
+   stacked corner placement and use a smaller default. */
+@media (max-width: 780px) {
+  .insight-popover,
+  .insight-chat-popover {
+    min-height: 220px;
+    max-height: calc(100vh - 80px);
+    height: min(42vh, 360px);
+  }
+}
+
+
+/* Case Insight: anchor at the upper-right so vertical
+   resizing extends downward. Leave the chat window as-is. */
+.insight-popover {
+  top: 86px !important;
+  bottom: auto !important;
+  right: var(--floating-edge) !important;
+  transform: none !important;
+}
+
+@media (max-width: 780px) {
+  .insight-popover {
+    top: 72px !important;
+    bottom: auto !important;
+    right: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .insight-popover {
+    right: 9px !important;
+  }
+}
+
+
+/* =========================================
+   COMPACT TICKET SELECTION CONTROLS
+========================================= */
+.ticket-bulk-tools {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.ticket-selection-toggle {
+  min-height: 29px;
+  padding: 5px 11px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--accent-dark);
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: background .2s ease, border-color .2s ease;
+}
+
+.ticket-selection-toggle:hover,
+.ticket-selection-toggle[aria-expanded="true"] {
+  background: #fff7f5;
+  border-color: #d8bfbc;
+}
+
+.ticket-selection-controls {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px 10px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fffaf9;
+}
+
+.ticket-selection-controls[hidden] {
+  display: none;
+}
+
+.select-all-tickets {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.select-all-tickets input,
+.ticket-select-checkbox {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #947078;
+  cursor: pointer;
+}
+
+.selection-count {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.delete-selected-btn {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-height: 36px;
+  padding: 7px 10px;
+  border: 1px solid #e4c9c7;
+  border-radius: 8px;
+  background: #fff;
+  color: #9b5558;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: background .2s ease, opacity .2s ease;
+}
+
+.delete-selected-btn:hover:not(:disabled) {
+  background: #fbefee;
+}
+
+.delete-selected-btn:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+.ticket-nav-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.ticket-select-checkbox {
+  flex: none;
+  margin-left: 3px;
+}
+
+.ticket-nav-row > button {
+  flex: 1;
+  min-width: 0;
+}
+
+.ticket-nav-row > button.selected-for-delete {
+  border-color: #d8aaa8;
+  background: #fff4f2;
+}
+
+
+/* =========================================
+   FIT & SIZING ASSISTANT
+========================================= */
+.sizing-assistant-section {
+  margin: 18px 0;
+  padding: 15px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fffdfc;
+}
+.sizing-assistant-section > summary {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.sizing-assistant-section > .microcopy {
+  margin: 9px 0 13px;
+  line-height: 1.55;
+}
+.sizing-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 11px;
+}
+.sizing-field { min-width: 0; }
+.sizing-field label {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .045em;
+}
+.sizing-field input,
+.sizing-field select {
+  width: 100%;
+  min-height: 39px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+.sizing-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin-top: 13px;
+}
+.sizing-actions a {
+  color: var(--accent-dark);
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.sizing-actions a:hover { text-decoration: underline; }
+.sizing-status { margin: 9px 0 0; color: var(--muted); font-size: 11px; }
+@media (max-width: 560px) {
+  .sizing-fields { grid-template-columns: 1fr; }
+}

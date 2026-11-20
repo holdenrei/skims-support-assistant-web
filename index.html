@@ -4,12 +4,58 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f7efed">
+  <meta name="theme-color" content="#f2e9e5">
   <title>SKIMS Support Assistant</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#302725">
+  <meta name="apple-mobile-web-app-title" content="SKIMS Assistant">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="app-shell">
+
+<section class="login-screen" id="loginScreen" aria-labelledby="loginTitle">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="login-wordmark">SKIMS</div>
+      <span class="login-brand-rule"></span>
+      <span class="login-brand-caption">SUPPORT ASSISTANT</span>
+    </div>
+
+    <div class="login-intro">
+      <span class="login-eyebrow">A MORE THOUGHTFUL WORKSPACE</span>
+      <h1 id="loginTitle">Welcome back.</h1>
+      <p>Sign in to continue to your customer care workspace.</p>
+    </div>
+
+    <form class="login-form" id="loginForm">
+      <label for="accessPassword">ACCESS PASSWORD</label>
+      <div class="password-field">
+        <input id="accessPassword" name="password" type="password"
+          placeholder="Enter your access password" autocomplete="current-password"
+          required aria-describedby="loginStatus">
+        <button type="button" class="password-toggle" id="togglePassword"
+          aria-label="Show password" aria-pressed="false">Show</button>
+      </div>
+      <p class="login-status" id="loginStatus" role="status" aria-live="polite"></p>
+      <button class="login-submit" id="loginSubmit" type="submit">
+        <span>Sign in</span><span aria-hidden="true">→</span>
+      </button>
+    </form>
+
+    <div class="login-security">
+      <span class="security-mark" aria-hidden="true">✦</span>
+      <span>Your workspace is protected with a private sign-in.</span>
+    </div>
+  </div>
+
+  <footer class="footer login-footer">
+    <span>SKIMS SUPPORT ASSISTANT</span>
+    <span>Review every response before sending it in your support platform.</span>
+    <span class="footer-credit">Created with care by <b>Holden</b> ✦</span>
+  </footer>
+</section>
+
+<div class="app-shell" id="appShell" hidden>
   <header class="topbar">
     <div class="brand">
       <div class="wordmark">SKIMS</div>
@@ -34,6 +80,20 @@
       <div class="rail-heading">
         <span>YOUR TICKETS</span>
         <span id="ticketCount">0 / 5</span>
+      </div>
+      <div class="ticket-bulk-tools" aria-label="Bulk ticket deletion">
+        <button type="button" class="ticket-selection-toggle" id="toggleTicketSelection"
+          aria-controls="ticketSelectionControls" aria-expanded="false">Select</button>
+        <div class="ticket-selection-controls" id="ticketSelectionControls" hidden>
+          <label class="select-all-tickets" id="selectAllTickets">
+            <input type="checkbox" id="selectAllCheckbox">
+            <span>Select all</span>
+          </label>
+          <span class="selection-count" id="selectionCount">Select tickets to remove</span>
+          <button type="button" class="delete-selected-btn" id="deleteSelectedTickets" disabled>
+            Delete selected
+          </button>
+        </div>
       </div>
       <div id="ticketNav" class="ticket-nav"></div>
       <div class="rail-note">
@@ -94,7 +154,7 @@
         <div class="conversation-empty">
           <span class="empty-icon">▤</span>
           <b>No conversation imported yet</b>
-          <p>Import this ticket to review its messages and attachments here. A one-time bookmarklet handoff is required by browser security.</p>
+          <p>Import this ticket to review its messages and attachments here. Kustomer access runs from a one-click browser bookmark so your signed-in session stays in Kustomer.</p>
         </div>
 
         <div class="conversation-preview" hidden></div>
@@ -207,6 +267,56 @@
 
       </div>
       <!-- END FLOATING AI INSIGHT AND CHAT -->
+
+      <details class="sizing-assistant-section">
+        <summary>Fit &amp; sizing assistant <span class="optional">(optional)</span></summary>
+        <p class="microcopy">Use the original team formula for bra calculations. For shapewear and clothing, use the customer's usual size as the starting point and verify measurements against the exact SKIMS product size guide. SKIMS generally fits true to size.</p>
+        <div class="sizing-fields">
+          <div class="sizing-field">
+            <label>PRODUCT CATEGORY</label>
+            <select class="sizing-category">
+              <option value="bra">Bra / Bralette</option>
+              <option value="shapewear">Shapewear</option>
+              <option value="clothing">Clothing / Loungewear / Swim</option>
+              <option value="bodysuit">Bodysuit</option>
+            </select>
+          </div>
+          <div class="sizing-field">
+            <label>PRODUCT / STYLE NAME</label>
+            <input class="sizing-product" type="text" placeholder="e.g. Fits Everybody Scoop Bralette">
+          </div>
+          <div class="sizing-field">
+            <label>CUSTOMER'S USUAL SIZE</label>
+            <input class="sizing-usual" type="text" placeholder="e.g. Medium or 36C">
+          </div>
+          <div class="sizing-field">
+            <label>MEASUREMENT UNIT</label>
+            <select class="sizing-unit"><option value="in">Inches</option><option value="cm">Centimeters</option></select>
+          </div>
+          <div class="sizing-field">
+            <label>UNDERBUST (BRA)</label>
+            <input class="sizing-underbust" type="number" min="1" step="0.1" placeholder="Optional">
+          </div>
+          <div class="sizing-field">
+            <label>OVERBUST / BUST</label>
+            <input class="sizing-bust" type="number" min="1" step="0.1" placeholder="Optional">
+          </div>
+          <div class="sizing-field">
+            <label>WAIST</label>
+            <input class="sizing-waist" type="number" min="1" step="0.1" placeholder="Optional">
+          </div>
+          <div class="sizing-field">
+            <label>HIPS</label>
+            <input class="sizing-hips" type="number" min="1" step="0.1" placeholder="Optional">
+          </div>
+        </div>
+        <div class="sizing-actions">
+          <button type="button" class="btn btn-soft add-sizing-context">Add measurements to AI notes</button>
+          <a href="https://skims.com/pages/size-guides" target="_blank" rel="noopener noreferrer">Official SKIMS size guides ↗</a>
+          <a href="https://skims.com/pages/size-guides-shapewear" target="_blank" rel="noopener noreferrer">Shapewear guide ↗</a>
+        </div>
+        <p class="microcopy sizing-status" aria-live="polite">Measurements are optional. Verify the exact product's chart before giving a final recommendation.</p>
+      </details>
 
       <section class="draft-section">
         <div class="section-heading compact">

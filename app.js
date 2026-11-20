@@ -1,5 +1,6 @@
 
-const API_URL = "http://127.0.0.1:8787";
+const API_URL = "";
+const AUTH_STORAGE_KEY = "skimsSupportAssistant_session_v1";
 const STORAGE_KEY = "skimsSupportAssistant_ticketData_v2";
 
 const ticketArea = document.getElementById("ticketArea");
@@ -21,6 +22,7 @@ const tickets = Array.from({ length: 5 }, (_, i) => ({
   customerName: "",
   insight: null,
   insightChat: [],
+  insightWindowLayout: {},
   insightOpen: false,
   insightChatOpen: false,
   insightUnread: false,
@@ -34,6 +36,8 @@ const tickets = Array.from({ length: 5 }, (_, i) => ({
 }));
 
 let activeId = 1;
+const selectedTicketIds = new Set();
+let ticketSelectionMode = false;
 
 const $ = (root, selector) => root.querySelector(selector);
 const getTicket = id => tickets.find(t => t.id === id);
@@ -60,6 +64,7 @@ function saveTicketData() {
       customerName: t.customerName,
       insight: t.insight,
       insightChat: t.insightChat,
+      insightWindowLayout: t.insightWindowLayout || {},
       insightStale: t.insightStale,
       insightChatError: t.insightChatError
     }));
@@ -104,6 +109,7 @@ function restoreTicketData() {
       t.collapsed = Boolean(item.collapsed);
       t.customerName = item.customerName || "";
       t.insight = item.insight || null;
+      t.insightWindowLayout = item.insightWindowLayout || {};
 
       t.insightChat = Array.isArray(item.insightChat)
         ? item.insightChat
@@ -128,11 +134,78 @@ function restoreTicketData() {
 
 restoreTicketData();
 
+// Bulk ticket selection and deletion controls.
+document.getElementById("toggleTicketSelection").addEventListener("click", () => {
+  ticketSelectionMode = !ticketSelectionMode;
+  if (!ticketSelectionMode) selectedTicketIds.clear();
+  render();
+});
+
+document.getElementById("selectAllCheckbox").addEventListener("change", event => {
+  selectedTicketIds.clear();
+  if (event.target.checked) tickets.forEach(t => selectedTicketIds.add(t.id));
+  render();
+});
+
+document.getElementById("deleteSelectedTickets").addEventListener("click", async () => {
+  const ids = [...selectedTicketIds].sort((a, b) => a - b);
+  if (!ids.length) return;
+
+  const ticketNames = ids.map(id => `Ticket ${id}`).join(", ");
+  if (!confirm(`Delete all data in ${ticketNames}? This removes their conversations, notes, drafts, and saved AI discussions.`)) {
+    return;
+  }
+
+  selectedTicketIds.clear();
+  await Promise.all(ids.map(async id => {
+    await cancelTicketImport(id);
+    resetTicketState(getTicket(id));
+  }));
+
+  saveTicketData();
+  render();
+});
+
 
 // =====================================
 // MAIN RENDER
 // PRESERVES PAGE AND CHAT SCROLL
 // =====================================
+
+function resetTicketState(t) {
+  t.insightRequestId++;
+  t.insightChatRequestId++;
+
+  Object.assign(t, {
+    url: "",
+    conversation: [],
+    attachments: [],
+    concern: "",
+    resolution: "",
+    output: "",
+    status: "empty",
+    importStatus: "Paste the URL belonging to this ticket only.",
+    collapsed: false,
+    customerName: "",
+    insight: null,
+    insightChat: [],
+    insightWindowLayout: {},
+    insightOpen: false,
+    insightChatOpen: false,
+    insightUnread: false,
+    insightLoading: false,
+    insightChatLoading: false,
+    insightError: "",
+    insightChatError: "",
+    insightStale: false
+  });
+}
+
+async function cancelTicketImport(ticketId) {
+  try {
+    await apiPost("/import/cancel", { ticketId: String(ticketId) });
+  } catch {}
+}
 
 function render(options = {}) {
   const previousPageX = window.scrollX;
@@ -171,10 +244,44 @@ function render(options = {}) {
   ticketNav.replaceChildren();
   ticketArea.replaceChildren();
 
+  const selectionToggle = document.getElementById("toggleTicketSelection");
+  const selectionControls = document.getElementById("ticketSelectionControls");
+  const selectAllLabel = document.getElementById("selectAllTickets");
+  const selectAll = document.getElementById("selectAllCheckbox");
+  selectionToggle.textContent = ticketSelectionMode ? "Done" : "Select";
+  selectionToggle.setAttribute("aria-expanded", String(ticketSelectionMode));
+  selectionControls.hidden = !ticketSelectionMode;
+  const deleteSelected = document.getElementById("deleteSelectedTickets");
+  const selectionCount = document.getElementById("selectionCount");
+  selectAll.checked = selectedTicketIds.size === tickets.length;
+  selectAll.indeterminate = selectedTicketIds.size > 0 &&
+    selectedTicketIds.size < tickets.length;
+  selectionCount.textContent = selectedTicketIds.size
+    ? `${selectedTicketIds.size} selected`
+    : "Select tickets to remove";
+  deleteSelected.disabled = selectedTicketIds.size === 0;
+  selectAllLabel.classList.toggle("has-selection", selectedTicketIds.size > 0);
+
   tickets.forEach(t => {
+    const row = document.createElement("div");
+    row.className = "ticket-nav-row";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.className = "ticket-select-checkbox";
+    checkbox.checked = selectedTicketIds.has(t.id);
+    checkbox.hidden = !ticketSelectionMode;
+    checkbox.setAttribute("aria-label", `Select Ticket ${t.id} for deletion`);
+    checkbox.addEventListener("change", () => {
+      if (checkbox.checked) selectedTicketIds.add(t.id);
+      else selectedTicketIds.delete(t.id);
+      render();
+    });
+
     const nav = document.createElement("button");
 
     nav.className = t.id === activeId ? "active" : "";
+    nav.classList.toggle("selected-for-delete", selectedTicketIds.has(t.id));
 
     const number = document.createElement("span");
     number.className = "ticket-number-badge";
@@ -208,7 +315,8 @@ function render(options = {}) {
       render();
     });
 
-    ticketNav.append(nav);
+    row.append(checkbox, nav);
+    ticketNav.append(row);
   });
 
   document.getElementById("ticketCount").textContent =
@@ -453,6 +561,10 @@ function renderInsight(card, t) {
     t.conversation.length > 0 ||
     t.insightChat.length > 0;
 
+  // Restore saved dimensions and position after each ticket rerender.
+  applyFloatingWindowLayout(insightPopover, t.insightWindowLayout?.insight);
+  applyFloatingWindowLayout(chatPopover, t.insightWindowLayout?.chat);
+
   // Main insight launcher and panel.
   launcher.hidden = !hasConversation;
   insightPopover.hidden =
@@ -482,9 +594,7 @@ function renderInsight(card, t) {
     const sections = [
       ["SUMMARY", t.insight.summary],
       ["CUSTOMER'S MAIN CONCERN", t.insight.customerConcern],
-      ["SUGGESTED RESOLUTION", t.insight.suggestedResolution],
-      ["RECOMMENDED NEXT STEP", t.insight.recommendedNextStep],
-      ["INFORMATION TO VERIFY", t.insight.missingInformation]
+      ["SUGGESTED RESOLUTION", t.insight.suggestedResolution]
     ];
 
     sections.forEach(([heading, value]) => {
@@ -510,7 +620,7 @@ function renderInsight(card, t) {
 
     const paragraph = document.createElement("p");
     paragraph.textContent =
-      "Import a customer conversation to generate a structured case analysis.";
+      "Import the full conversation to identify the customer's current concern and the most appropriate policy-based resolution.";
 
     welcome.append(heading, paragraph);
     content.append(welcome);
@@ -583,7 +693,7 @@ function renderInsight(card, t) {
 
   } else if (t.insightStale) {
     status.textContent =
-      "Your case notes have changed. Reanalyze the case to update the recommendations.";
+      "Your conversation or agent notes have changed. Refresh the insight to update the case analysis.";
 
     status.className = "insight-status stale";
 
@@ -625,46 +735,53 @@ function renderInsight(card, t) {
 // SYNCHRONIZE FLOATING WINDOW HEIGHTS
 // =====================================
 
-function syncInsightChatSize(card) {
-  const insight = $(card, ".insight-popover");
-  const chat = $(card, ".insight-chat-popover");
+// Floating windows now keep independent user-controlled dimensions.
+// Retain this compatibility helper for existing render/resize calls.
+function syncInsightChatSize() {
+  // Intentionally no-op: do not overwrite the chat window's own size.
+}
 
-  if (!insight || !chat) return;
+// =====================================
+// DRAGGABLE + RESIZABLE AI WINDOWS
+// =====================================
 
-  if (insight.hidden || chat.hidden) {
-    chat.style.height = "";
-    return;
+function applyFloatingWindowLayout(panel, layout) {
+  if (!panel || !layout) return;
+  if (Number.isFinite(layout.height)) {
+    panel.style.height = `${layout.height}px`;
   }
+}
 
-  requestAnimationFrame(() => {
-    if (!insight.isConnected || chat.hidden) return;
+function setupFloatingWindowInteractions(card, ticket) {
+  [
+    { panel: ".insight-popover", key: "insight" },
+    { panel: ".insight-chat-popover", key: "chat" }
+  ].forEach(({ panel: selector, key }) => {
+    const panel = $(card, selector);
+    if (!panel || panel.dataset.resizeReady) return;
+    panel.dataset.resizeReady = "true";
 
-    const insightHeight =
-      Math.ceil(insight.getBoundingClientRect().height);
-
-    if (insightHeight > 0) {
-      chat.style.height = `${insightHeight}px`;
+    if ("ResizeObserver" in window) {
+      let lastHeight = 0;
+      const observer = new ResizeObserver(() => {
+        if (!panel.isConnected || panel.hidden) return;
+        const height = Math.round(panel.getBoundingClientRect().height);
+        if (!height || height === lastHeight) return;
+        lastHeight = height;
+        ticket.insightWindowLayout = ticket.insightWindowLayout || {};
+        ticket.insightWindowLayout[key] = { height };
+        saveTicketData();
+      });
+      observer.observe(panel);
     }
   });
 }
 
-// Recalculate the panel heights when the browser
-// side panel or viewport changes size.
-window.addEventListener("resize", () => {
-  const card = ticketArea.querySelector(".ticket-card");
-
-  if (card) {
-    syncInsightChatSize(card);
-  }
-});
-
-
-
-// =====================================
 // CARD EVENT HANDLERS
 // =====================================
 
 function bindCard(card, t) {
+  setupFloatingWindowInteractions(card, t);
 
   $(card, ".conversation-url").addEventListener("input", e => {
     t.url = e.target.value.trim();
@@ -876,8 +993,8 @@ function bindCard(card, t) {
       });
 
       t.importStatus = popup
-        ? "Kustomer opened in a new tab. On that tab, click your SKIMS Import bookmark. Keep this panel open while it imports."
-        : "Open this Kustomer URL in another tab, then click your SKIMS Import bookmark.";
+        ? "Kustomer opened in a new tab. On that tab, click your SKIMS Import bookmark to securely send the conversation to this website. Keep this page open while it imports."
+        : "Open this Kustomer URL in another tab, then click your SKIMS Import bookmark. The bookmark sends the conversation directly to this hosted website.";
 
       t.status = "pending";
 
@@ -892,7 +1009,7 @@ function bindCard(card, t) {
         : "empty";
 
       t.importStatus =
-        `${e.message} Make sure the local backend is running.`;
+        `${e.message} Check your sign-in and connection, then try again.`;
 
       status.textContent = t.importStatus;
 
@@ -914,6 +1031,64 @@ function bindCard(card, t) {
   // =====================================
   // EXISTING DRAFTING FEATURES
   // =====================================
+
+  $(card, ".add-sizing-context").addEventListener("click", () => {
+    const category = $(card, ".sizing-category").value;
+    const product = $(card, ".sizing-product").value.trim();
+    const usual = $(card, ".sizing-usual").value.trim();
+    const unit = $(card, ".sizing-unit").value;
+    const underbust = $(card, ".sizing-underbust").value.trim();
+    const bust = $(card, ".sizing-bust").value.trim();
+    const waist = $(card, ".sizing-waist").value.trim();
+    const hips = $(card, ".sizing-hips").value.trim();
+    const categoryLabel = {
+      bra: "Bra / Bralette",
+      shapewear: "Shapewear",
+      clothing: "Clothing / Loungewear / Swim",
+      bodysuit: "Bodysuit"
+    }[category];
+    if (!product && !usual && !underbust && !bust && !waist && !hips) {
+      $(card, ".sizing-status").textContent = "Enter a product, usual size, or at least one measurement first.";
+      return;
+    }
+    let customBraResult = "";
+    if (category === "bra" && underbust && bust && unit === "in") {
+      const u = Number(underbust), b = Number(bust), rounded = Math.round(u);
+      if (Number.isFinite(u) && Number.isFinite(b) && u > 0 && b >= u && Math.abs(u-rounded) < 0.01) {
+        const band = rounded + (rounded % 2 === 0 ? 2 : 3);
+        const diff = Math.round((b-u)*10)/10;
+        const cups = {1:"A",2:"B",3:"C",4:"D",5:"DD/E",6:"DDD/F",7:"DDDD/G",8:"DDDDD/H"};
+        const cupKey = Math.round(diff);
+        const cup = Math.abs(diff-cupKey)<0.01 ? cups[cupKey] : null;
+        customBraResult = cup ? `\nOriginal internal bra formula result: ${band}${cup} (band ${band}; cup difference ${diff} in).` : `\nOriginal internal bra formula: band ${band}; cup difference ${diff} in does not map cleanly to the supplied chart. Do not state a definitive size.`;
+      } else {
+        customBraResult = "\nOriginal internal bra formula not applied: verify measurements; it requires a whole-number underbust and overbust at least as large as underbust.";
+      }
+    }
+    const lines = [
+      "SIZING / FIT CONTEXT (agent-supplied; use for this customer only):",
+      `Product category: ${categoryLabel}`,
+      product ? `Exact product/style: ${product}` : "",
+      usual ? `Customer's usual size: ${usual}` : "",
+      underbust ? `Underbust: ${underbust} ${unit}` : "",
+      bust ? `Overbust / bust: ${bust} ${unit}` : "",
+      waist ? `Waist: ${waist} ${unit}` : "",
+      hips ? `Hips: ${hips} ${unit}` : "",
+      customBraResult,
+      "Fit guidance: SKIMS generally fits true to size. Start with the customer's usual size; for shapewear and clothing, compare the supplied measurements with the current official SKIMS size guide and the exact product/style chart. Do not automatically size down for compression. If measurements span sizes, a chart is unavailable, or fit varies by style, state the uncertainty and advise checking the product-specific chart. Never invent a size mapping or guarantee fit.",
+      "Official reference: https://www.skims.com/pages/size-guides (shapewear: https://www.skims.com/pages/size-guides-shapewear)"
+    ].filter(Boolean).join("\n");
+    const existing = t.resolution.trim();
+    if (existing.includes("SIZING / FIT CONTEXT (agent-supplied; use for this customer only):")) {
+      t.resolution = existing.replace(/SIZING \/ FIT CONTEXT \(agent-supplied; use for this customer only\):[\s\S]*?(?=\n\n[A-Z][^\n]*:|$)/, lines);
+    } else {
+      t.resolution = existing ? existing + "\n\n" + lines : lines;
+    }
+    $(card, ".confirmed-resolution").value = t.resolution;
+    markInsightStale(t, card);
+    saveTicketData();
+    $(card, ".sizing-status").textContent = "Sizing details added to this ticket's AI notes. Generate AI Insight or a response to use them.";
+  });
 
   $(card, ".generate-btn").addEventListener("click", () => {
     generateDraft(card, t);
@@ -950,38 +1125,9 @@ function bindCard(card, t) {
       return;
     }
 
-    try {
-      await apiPost("/import/cancel", {
-        ticketId: String(t.id)
-      });
-    } catch {}
-
-    t.insightRequestId++;
-    t.insightChatRequestId++;
-
-    Object.assign(t, {
-      url: "",
-      conversation: [],
-      attachments: [],
-      concern: "",
-      resolution: "",
-      output: "",
-      status: "empty",
-      importStatus:
-        "Paste the URL belonging to this ticket only.",
-      collapsed: false,
-      customerName: "",
-      insight: null,
-      insightChat: [],
-      insightOpen: false,
-      insightChatOpen: false,
-      insightUnread: false,
-      insightLoading: false,
-      insightChatLoading: false,
-      insightError: "",
-      insightChatError: "",
-      insightStale: false
-    });
+    await cancelTicketImport(t.id);
+    resetTicketState(t);
+    selectedTicketIds.delete(t.id);
 
     saveTicketData();
     render();
@@ -1068,9 +1214,9 @@ async function sendInsightMessage(t, input) {
   } catch (e) {
     if (requestId !== t.insightChatRequestId) return;
 
-    t.insightChatError =
-      e.message ||
-      "Unable to send your message to the AI assistant.";
+    t.insightChatError = /rate limit|tokens per minute|\b429\b/i.test(e.message || "")
+      ? "The AI service is temporarily at its usage limit. Please wait about 10–15 seconds, then send your message again."
+      : (e.message || "Unable to send your message to the AI assistant.");
 
   } finally {
     if (requestId === t.insightChatRequestId) {
@@ -1162,8 +1308,9 @@ async function generateInsight(t) {
   } catch (e) {
     if (requestId !== t.insightRequestId) return;
 
-    t.insightError =
-      e.message || "AI case analysis failed.";
+    t.insightError = /rate limit|tokens per minute|\b429\b/i.test(e.message || "")
+      ? "The AI service is temporarily at its usage limit. Please wait about 10–15 seconds, then select Refresh insight. Your imported conversation is safe."
+      : (e.message || "AI case analysis failed.");
 
   } finally {
     if (requestId === t.insightRequestId) {
@@ -1185,43 +1332,145 @@ async function generateInsight(t) {
 // API HELPERS
 // =====================================
 
-async function apiGet(path) {
-  const r = await fetch(`${API_URL}${path}`);
-
-  const data = await r.json().catch(() => ({}));
-
-  if (!r.ok) {
-    throw new Error(
-      data.error || "The local import service returned an error."
-    );
+function showLogin(message = "") {
+  const loginScreen = document.getElementById("loginScreen");
+  const appShell = document.getElementById("appShell");
+  const status = document.getElementById("loginStatus");
+  if (loginScreen) loginScreen.hidden = false;
+  if (appShell) appShell.hidden = true;
+  if (status) {
+    status.textContent = message;
+    status.classList.toggle("success", false);
   }
-
-  return data;
+  document.getElementById("accessPassword")?.focus();
 }
 
+function showWorkspace() {
+  const loginScreen = document.getElementById("loginScreen");
+  const appShell = document.getElementById("appShell");
+  if (loginScreen) loginScreen.hidden = true;
+  if (appShell) appShell.hidden = false;
+}
 
-async function apiPost(path, body) {
-  const r = await fetch(`${API_URL}${path}`, {
+async function submitLogin(password) {
+  const response = await fetch("/auth/login", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(body)
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password })
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.token) {
+    throw new Error(data.error || "Unable to sign in. Please try again.");
+  }
+  sessionStorage.setItem(AUTH_STORAGE_KEY, data.token);
+
+  // A fresh sign-in starts with a clean local workspace. Ticket data is
+  // browser-local, so clear any previous agent's saved tickets on this device.
+  localStorage.removeItem(STORAGE_KEY);
+
+  // Reload so the in-memory ticket objects are recreated empty.
+  window.location.reload();
+}
+
+async function initializeAuthentication() {
+  const token = sessionStorage.getItem(AUTH_STORAGE_KEY);
+  if (!token) {
+    showLogin();
+    return;
+  }
+
+  try {
+    const response = await fetch("/import/status?ticketId=1", {
+      headers: { Authorization: "Bearer " + token }
+    });
+    if (response.ok) {
+      showWorkspace();
+      return;
+    }
+  } catch {}
+
+  sessionStorage.removeItem(AUTH_STORAGE_KEY);
+  showLogin("Your sign-in has expired. Please sign in again.");
+}
+
+document.getElementById("loginForm")?.addEventListener("submit", async event => {
+  event.preventDefault();
+  const input = document.getElementById("accessPassword");
+  const button = document.getElementById("loginSubmit");
+  const status = document.getElementById("loginStatus");
+  const password = input.value;
+
+  if (!password.trim()) {
+    status.textContent = "Please enter your access password.";
+    input.focus();
+    return;
+  }
+
+  button.disabled = true;
+  button.innerHTML = "<span>Signing in…</span><span aria-hidden=\"true\">→</span>";
+  status.textContent = "";
+
+  try {
+    await submitLogin(password);
+    input.value = "";
+  } catch (error) {
+    status.textContent = error.message || "Unable to sign in. Please try again.";
+    input.focus();
+  } finally {
+    button.disabled = false;
+    button.innerHTML = "<span>Sign in</span><span aria-hidden=\"true\">→</span>";
+  }
+});
+
+document.getElementById("togglePassword")?.addEventListener("click", event => {
+  const input = document.getElementById("accessPassword");
+  const button = event.currentTarget;
+  const reveal = input.type === "password";
+  input.type = reveal ? "text" : "password";
+  button.textContent = reveal ? "Hide" : "Show";
+  button.setAttribute("aria-label", reveal ? "Hide password" : "Show password");
+  button.setAttribute("aria-pressed", String(reveal));
+});
+
+async function getAccessToken() {
+  const token = sessionStorage.getItem(AUTH_STORAGE_KEY);
+  if (!token) {
+    showLogin("Please sign in to continue.");
+    throw new Error("Sign-in is required.");
+  }
+  return token;
+}
+
+async function authenticatedFetch(url, options = {}, retry = true) {
+  const token = await getAccessToken();
+  const response = await fetch(url, {
+    ...options,
+    headers: { ...(options.headers || {}), Authorization: "Bearer " + token }
   });
 
-  const data = await r.json().catch(() => ({}));
-
-  if (!r.ok) {
-    throw new Error(
-      data.error || "The drafting service returned an error."
-    );
+  if (response.status === 401) {
+    sessionStorage.removeItem(AUTH_STORAGE_KEY);
+    showLogin("Your sign-in has expired. Please sign in again.");
+    throw new Error("Your sign-in has expired. Please sign in again.");
   }
+  return response;
+}
 
+async function apiGet(path) {
+  const r = await authenticatedFetch(API_URL + path);
+  const data = await r.json().catch(()=>({}));
+  if (!r.ok) throw new Error(data.error || "The service returned an error.");
+  return data;
+}
+
+async function apiPost(path, body) {
+  const r = await authenticatedFetch(API_URL + path, {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  const data = await r.json().catch(()=>({}));
+  if (!r.ok) throw new Error(data.error || "The drafting service returned an error.");
   return data;
 }
 
 
-// =====================================
 // WAIT FOR KUSTOMER IMPORT
 // =====================================
 
@@ -1305,7 +1554,7 @@ async function waitForImport(t) {
     : "empty";
 
   t.importStatus =
-    "Import is still waiting. Run the SKIMS Import bookmarklet in the matching Kustomer tab and select this ticket, then try again if the request has expired.";
+    "Import is still waiting. In the matching Kustomer tab, click your SKIMS Import bookmark. If the request has expired, start the import again from this website.";
 
   saveTicketData();
   render();
@@ -1353,7 +1602,7 @@ async function generateDraft(card, t) {
 
   } catch (e) {
     status.textContent =
-      `${e.message} Check that the local drafting backend is running.`;
+      `${e.message} Check your connection and the hosted drafting service.`;
 
   } finally {
     button.disabled = false;
@@ -1428,3 +1677,7 @@ document.getElementById("collapseAll").addEventListener("click", () => {
 // =====================================
 
 render();
+
+
+// Show the ticket workspace only after a valid sign-in.
+initializeAuthentication();
