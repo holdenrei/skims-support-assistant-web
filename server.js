@@ -433,9 +433,9 @@ function getRelevantSkimsPolicyKnowledge(ticketContext = "") {
     [/missing item|item missing|not in (?:the )?package|missing product/, ["MISSING ITEM — DOMESTIC (US)", "MISSING ITEM — INTERNATIONAL"]],
     [/wrong item|incorrect item|received .* instead|different item|wrong product/, ["WRONG ITEM — DOMESTIC (US)", "WRONG ITEM — INTERNATIONAL"]],
     [/delivered|not received|marked delivered|lost package|porch|delivery dispute/, ["LOST PACKAGE — INTERNATIONAL (DELIVERED BUT CUSTOMER SAYS NOT RECEIVED)"]],
-    [/lost in transit|lit|no tracking update|stuck in transit|last scan/, ["LOST IN TRANSIT (LIT)"]],
+    [/lost in transit|\\blit\\b|no tracking update|stuck in transit|last scan/, ["LOST IN TRANSIT (LIT)"]],
     [/dead tracking|label created|never scanned|no carrier scan/, ["DEAD TRACKING (DT)"]],
-    [/return to sender|returned to sender|rts/, ["RETURNED TO SENDER (RTS)"]],
+    [/return to sender|returned to sender|\\brts\\b/, ["RETURNED TO SENDER (RTS)"]],
     [/return|refund|rma|return label|return status|warehouse|global-e|global e|happy returns|mail-in|drop.?off|inspection|crick|grobbendonk|poland/, ["RETURNS AND REFUNDS — DOMESTIC (US)", "GENERAL RETURN POLICY", "RETURN STATUS AND REFUND INQUIRIES", "RETURNS AND REFUNDS — INTERNATIONAL", "GENERAL INTERNATIONAL RETURN POLICY", "INTERNATIONAL RETURN STATUS — REQUIRED INITIAL CHECKS", "GCC AND UK/EU ORDERS UNDER $100 — REFUND HANDLING", "UK/EU ORDERS $100 OR MORE — INSPECTION REQUIRED", "RETURN POLICY DECISION SAFEGUARDS"]]
   ];
   const selected = new Set(["IMPORTANT DISTINCTIONS", "RETURN POLICY DECISION SAFEGUARDS", "CUSTOMER-FACING DRAFTING BOUNDARY"]);
