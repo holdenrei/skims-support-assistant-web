@@ -1355,7 +1355,7 @@ async function generateDraft(card, t) {
 
   } catch (e) {
     status.textContent =
-      `${e.message} Check that the local drafting backend is running.`;
+      `${e.message} Check your connection and the hosted drafting service.`;
 
   } finally {
     button.disabled = false;
