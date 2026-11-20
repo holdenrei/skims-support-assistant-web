@@ -192,7 +192,7 @@ async function getSkimsSizingGuideReference() {
       .replace(/&#39;|&apos;/gi, "'")
       .replace(/\s+/g, " ")
       .trim();
-    return { url, text: text.slice(0, 26000) };
+    return { url, text: text.slice(-22000) };
   }));
 
   const usable = pages
