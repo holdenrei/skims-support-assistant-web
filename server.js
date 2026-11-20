@@ -317,7 +317,7 @@ async function getGroqRetryDelay(response, fallbackMs) {
     try {
       const payload = await response.clone().json();
       const message = payload.error?.message || "";
-      const match = message.match(/try again in\\s+([\\d.]+)\\s*s/i);
+      const match = message.match(/try again in\s+([\d.]+)\s*s/i);
       if (match) retryMs = Math.ceil(Number(match[1]) * 1000) + 500;
     } catch {
       // Use the fallback delay if the response body is not JSON.
