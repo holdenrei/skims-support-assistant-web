@@ -167,6 +167,14 @@ These policies must always be followed whenever relevant to the customer's case.
 // =====================================
 
 const skimsPolicyKnowledge = `
+SIZING AND FIT GUIDANCE:
+- SKIMS generally fits true to size. Treat the customer's usual size as the starting point, not an automatic instruction to size down.
+- For shapewear and clothing, base guidance on the current official SKIMS size guide and the exact product/style chart. Use bust, waist, and hip measurements as applicable. Product categories and individual styles can have different charts; do not assume one chart applies to every item.
+- Official references: https://www.skims.com/pages/size-guides and https://www.skims.com/pages/size-guides-shapewear. If current chart details are not supplied in the conversation, do not pretend to have checked a live page or invent a size mapping. Tell the agent to verify the exact product's current chart.
+- Do not automatically recommend sizing down for shapewear or stronger compression. Consider the customer's usual size, measurements, intended comfort/compression, and the product-specific guidance.
+- If measurements fall between sizes or conflict across bust/waist/hips, explain the uncertainty and use the exact product chart and customer's fit preference. Never guarantee fit.
+- For bra sizing, the agent's supplied internal formula may be used as an internal estimate only: odd whole-number underbust +3 for band; even whole-number underbust +2; cup difference = overbust minus original underbust; mapping 1=A, 2=B, 3=C, 4=D, 5=DD/E, 6=DDD/F, 7=DDDD/G, 8=DDDDD/H. Do not force fractional underbust or unmapped cup differences. Cross-check against the official product-specific SKIMS bra chart before advising the customer.
+
 INTERNAL SKIMS SUPPORT POLICY KNOWLEDGE BASE
 Use this as the supplied operational reference when analyzing cases, advising agents, or drafting customer responses. Apply only the policy relevant to the customer's actual issue. Do not invent exceptions. If a required detail (country, item value, courtesy count, tracking history, delivery date, or channel) is missing, say what the agent needs to establish rather than guessing.
 
