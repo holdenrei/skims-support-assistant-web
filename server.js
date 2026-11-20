@@ -413,17 +413,49 @@ CUSTOMER-FACING DRAFTING BOUNDARY:
 - If eligibility cannot be determined from the supplied conversation and agent notes, do not list speculative options. Ask the agent to verify the missing eligibility detail or phrase the customer response without promising an outcome.
 `;
 
+// Select applicable policy sections automatically; the complete policy library above remains unchanged.
+function getRelevantSkimsPolicyKnowledge(ticketContext = "") {
+  const context = String(ticketContext || "").toLowerCase();
+  const lines = skimsPolicyKnowledge.trim().split("\n");
+  const headingPattern = /^[A-Z][A-Z0-9 —()&/$,.-]{4,}:?$/;
+  const sections = [];
+  let current = { heading: "__INTRO__", lines: [] };
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (headingPattern.test(trimmed)) {
+      sections.push(current);
+      current = { heading: trimmed.replace(/:$/, ""), lines: [line] };
+    } else current.lines.push(line);
+  }
+  sections.push(current);
+  const rules = [
+    [/sizing|size guide|bra|cup size|band size|underbust|overbust|fit|compression/, ["SIZING AND FIT GUIDANCE"]],
+    [/missing item|item missing|not in (?:the )?package|missing product/, ["MISSING ITEM — DOMESTIC (US)", "MISSING ITEM — INTERNATIONAL"]],
+    [/wrong item|incorrect item|received .* instead|different item|wrong product/, ["WRONG ITEM — DOMESTIC (US)", "WRONG ITEM — INTERNATIONAL"]],
+    [/delivered|not received|marked delivered|lost package|porch|delivery dispute/, ["LOST PACKAGE — INTERNATIONAL (DELIVERED BUT CUSTOMER SAYS NOT RECEIVED)"]],
+    [/lost in transit|lit|no tracking update|stuck in transit|last scan/, ["LOST IN TRANSIT (LIT)"]],
+    [/dead tracking|label created|never scanned|no carrier scan/, ["DEAD TRACKING (DT)"]],
+    [/return to sender|returned to sender|rts/, ["RETURNED TO SENDER (RTS)"]],
+    [/return|refund|rma|return label|return status|warehouse|global-e|global e|happy returns|mail-in|drop.?off|inspection|crick|grobbendonk|poland/, ["RETURNS AND REFUNDS — DOMESTIC (US)", "GENERAL RETURN POLICY", "RETURN STATUS AND REFUND INQUIRIES", "RETURNS AND REFUNDS — INTERNATIONAL", "GENERAL INTERNATIONAL RETURN POLICY", "INTERNATIONAL RETURN STATUS — REQUIRED INITIAL CHECKS", "GCC AND UK/EU ORDERS UNDER $100 — REFUND HANDLING", "UK/EU ORDERS $100 OR MORE — INSPECTION REQUIRED", "RETURN POLICY DECISION SAFEGUARDS"]]
+  ];
+  const selected = new Set(["IMPORTANT DISTINCTIONS", "RETURN POLICY DECISION SAFEGUARDS", "CUSTOMER-FACING DRAFTING BOUNDARY"]);
+  for (const [pattern, headings] of rules) if (pattern.test(context)) headings.forEach(h => selected.add(h));
+  // Ambiguous tickets retain every policy rather than risk omitting a relevant rule.
+  if (!context.trim() || selected.size === 3) return skimsPolicyKnowledge;
+  return sections.filter(section => section.heading === "__INTRO__" || selected.has(section.heading)).map(section => section.lines.join("\n")).join("\n\n");
+}
+
 // =====================================
 // RESPONSE SYSTEM PROMPT
 // =====================================
 
-function buildDraftSystemPrompt(mode) {
+function buildDraftSystemPrompt(mode, ticketContext = "") {
   return [
     instructions,
     "",
     carrierPolicyInstructions,
     "",
-    skimsPolicyKnowledge,
+    getRelevantSkimsPolicyKnowledge(ticketContext),
     "",
     "TASK INTERPRETATION AND EXAMPLE CALIBRATION:",
     "First determine the intended audience and requested deliverable from the agent's actual instruction. The selected channel controls formatting only when the requested output is customer-facing; an explicit internal-team request overrides customer-facing formatting.",
@@ -520,7 +552,7 @@ async function callGroqWithRetry(
   systemInstruction = null
 ) {
   const delays = [1500, 3000, 10000];
-  const systemText = systemInstruction || buildDraftSystemPrompt(mode);
+  const systemText = systemInstruction || buildDraftSystemPrompt(mode, prompt);
   const completionTokenLimit = getSafeCompletionTokenLimit(
     systemText,
     prompt,
