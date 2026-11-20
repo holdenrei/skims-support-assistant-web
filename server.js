@@ -741,14 +741,14 @@ const server = http.createServer(async (req, res) => {
     let requested;
     try { requested = route === "/" ? "index.html" : decodeURIComponent(route.startsWith("/") ? route.slice(1) : route); }
     catch { res.writeHead(400); return res.end("Bad request"); }
-    const publicFiles = new Set(["index.html", "app.js", "styles.css"]);
+    const publicFiles = new Set(["index.html", "app.js", "styles.css", "favicon.svg", "safari-pinned-tab.svg"]);
     if (!publicFiles.has(requested)) {
       res.writeHead(404, {"Content-Type":"text/plain; charset=utf-8"});
       return res.end("Not found");
     }
     const filePath = path.join(__dirname, requested);
     const types = { ".html":"text/html; charset=utf-8", ".css":"text/css; charset=utf-8",
-      ".js":"text/javascript; charset=utf-8" };
+      ".js":"text/javascript; charset=utf-8", ".svg":"image/svg+xml" };
     return fs.readFile(filePath, (err, content) => {
       if (err) { res.writeHead(404, {"Content-Type":"text/plain; charset=utf-8"}); return res.end("Not found"); }
       res.writeHead(200, {"Content-Type":types[path.extname(filePath)],
