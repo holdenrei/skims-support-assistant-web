@@ -203,6 +203,7 @@ Required handling:
 - Options: Priority Reship, Store Credit, or refund to original payment method (OPM).
 1st and 2nd courtesy, item value over $150:
 - Offer/process the free return as required; add the cs-returnfee tag. Once the return requirement is addressed, offer an eligible OPM refund or Store Credit.
+- SOURCE SOP GAP: the supplied rules specify under $150 and over $150 but do not state how to handle an item valued at exactly $150. Flag for agent verification; do not assume which threshold applies.
 3rd courtesy:
 - Deny the requested resolution, offer a free return, leave a detailed TL note, and file a warehouse claim.
 
