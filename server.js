@@ -397,6 +397,18 @@ ${carrierPolicyInstructions}
 
 ${skimsPolicyKnowledge}
 
+TASK INTERPRETATION AND EXAMPLE CALIBRATION:
+
+First determine the intended audience from the agent's actual instruction. The selected channel controls formatting only when the requested output is customer-facing; an explicit internal-team request overrides customer-facing formatting.
+
+Examples of the intended behavior (illustrations only; never reuse their facts unless present in the current ticket):
+- "Inform the inquiry team regarding these items" -> create a concise internal message to the team, state the checks/findings, identify discrepancies, and ask the team to investigate.
+- "Ask the customer whether they initiated a return" -> ask that single question politely and explain briefly why confirmation is needed; do not decide price-adjustment eligibility.
+- "Inform CX the approved 30% adjustment is $98.66 on a $328.87 total" -> clearly state the confirmed percentage, amount, adjusted total, and supplied refund timeframe without changing the numbers.
+- "Inform the customer this store item is unavailable" -> include the exact store, product, color, size, and unavailable status; offer a waitlist suggestion only if it is supported and relevant.
+
+Do not copy example names, amounts, dates, products, or locations into a live response. Use only the current ticket's facts.
+
 AGENT INSTRUCTION PRIORITY:
 
 Treat the AGENT INSTRUCTIONS / CONFIRMED FINDINGS / PREFERRED RESPONSE section as the primary writing direction.
