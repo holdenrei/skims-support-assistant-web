@@ -9,7 +9,50 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="app-shell">
+
+<section class="login-screen" id="loginScreen" aria-labelledby="loginTitle">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="login-wordmark">SKIMS</div>
+      <span class="login-brand-rule"></span>
+      <span class="login-brand-caption">SUPPORT ASSISTANT</span>
+    </div>
+
+    <div class="login-intro">
+      <span class="login-eyebrow">A MORE THOUGHTFUL WORKSPACE</span>
+      <h1 id="loginTitle">Welcome back.</h1>
+      <p>Sign in to continue to your customer care workspace.</p>
+    </div>
+
+    <form class="login-form" id="loginForm">
+      <label for="accessPassword">ACCESS PASSWORD</label>
+      <div class="password-field">
+        <input id="accessPassword" name="password" type="password"
+          placeholder="Enter your access password" autocomplete="current-password"
+          required aria-describedby="loginStatus">
+        <button type="button" class="password-toggle" id="togglePassword"
+          aria-label="Show password" aria-pressed="false">Show</button>
+      </div>
+      <p class="login-status" id="loginStatus" role="status" aria-live="polite"></p>
+      <button class="login-submit" id="loginSubmit" type="submit">
+        <span>Sign in</span><span aria-hidden="true">→</span>
+      </button>
+    </form>
+
+    <div class="login-security">
+      <span class="security-mark" aria-hidden="true">✦</span>
+      <span>Your workspace is protected with a private sign-in.</span>
+    </div>
+  </div>
+
+  <footer class="footer login-footer">
+    <span>SKIMS SUPPORT ASSISTANT</span>
+    <span>Review every response before sending it in your support platform.</span>
+    <span class="footer-credit">Created with care by <b>Holden</b> ✦</span>
+  </footer>
+</section>
+
+<div class="app-shell" id="appShell" hidden>
   <header class="topbar">
     <div class="brand">
       <div class="wordmark">SKIMS</div>
