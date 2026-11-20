@@ -265,6 +265,56 @@
       </div>
       <!-- END FLOATING AI INSIGHT AND CHAT -->
 
+      <details class="sizing-assistant-section">
+        <summary>Fit &amp; sizing assistant <span class="optional">(optional)</span></summary>
+        <p class="microcopy">Use the original team formula for bra calculations. For shapewear and clothing, use the customer's usual size as the starting point and verify measurements against the exact SKIMS product size guide. SKIMS generally fits true to size.</p>
+        <div class="sizing-fields">
+          <div class="sizing-field">
+            <label>PRODUCT CATEGORY</label>
+            <select class="sizing-category">
+              <option value="bra">Bra / Bralette</option>
+              <option value="shapewear">Shapewear</option>
+              <option value="clothing">Clothing / Loungewear / Swim</option>
+              <option value="bodysuit">Bodysuit</option>
+            </select>
+          </div>
+          <div class="sizing-field">
+            <label>PRODUCT / STYLE NAME</label>
+            <input class="sizing-product" type="text" placeholder="e.g. Fits Everybody Scoop Bralette">
+          </div>
+          <div class="sizing-field">
+            <label>CUSTOMER'S USUAL SIZE</label>
+            <input class="sizing-usual" type="text" placeholder="e.g. Medium or 36C">
+          </div>
+          <div class="sizing-field">
+            <label>MEASUREMENT UNIT</label>
+            <select class="sizing-unit"><option value="in">Inches</option><option value="cm">Centimeters</option></select>
+          </div>
+          <div class="sizing-field">
+            <label>UNDERBUST (BRA)</label>
+            <input class="sizing-underbust" type="number" min="1" step="0.1" placeholder="Optional">
+          </div>
+          <div class="sizing-field">
+            <label>OVERBUST / BUST</label>
+            <input class="sizing-bust" type="number" min="1" step="0.1" placeholder="Optional">
+          </div>
+          <div class="sizing-field">
+            <label>WAIST</label>
+            <input class="sizing-waist" type="number" min="1" step="0.1" placeholder="Optional">
+          </div>
+          <div class="sizing-field">
+            <label>HIPS</label>
+            <input class="sizing-hips" type="number" min="1" step="0.1" placeholder="Optional">
+          </div>
+        </div>
+        <div class="sizing-actions">
+          <button type="button" class="btn btn-soft add-sizing-context">Add measurements to AI notes</button>
+          <a href="https://skims.com/pages/size-guides" target="_blank" rel="noopener noreferrer">Official SKIMS size guides ↗</a>
+          <a href="https://skims.com/pages/size-guides-shapewear" target="_blank" rel="noopener noreferrer">Shapewear guide ↗</a>
+        </div>
+        <p class="microcopy sizing-status" aria-live="polite">Measurements are optional. Verify the exact product's chart before giving a final recommendation.</p>
+      </details>
+
       <section class="draft-section">
         <div class="section-heading compact">
           <div>
