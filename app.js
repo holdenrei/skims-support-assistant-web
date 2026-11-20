@@ -631,42 +631,12 @@ function renderInsight(card, t) {
 // SYNCHRONIZE FLOATING WINDOW HEIGHTS
 // =====================================
 
-function syncInsightChatSize(card) {
-  const insight = $(card, ".insight-popover");
-  const chat = $(card, ".insight-chat-popover");
-
-  if (!insight || !chat) return;
-
-  if (insight.hidden || chat.hidden) {
-    chat.style.height = "";
-    return;
-  }
-
-  requestAnimationFrame(() => {
-    if (!insight.isConnected || chat.hidden) return;
-
-    const insightHeight =
-      Math.ceil(insight.getBoundingClientRect().height);
-
-    if (insightHeight > 0) {
-      chat.style.height = `${insightHeight}px`;
-    }
-  });
+// Floating windows now keep independent user-controlled dimensions.
+// Retain this compatibility helper for existing render/resize calls.
+function syncInsightChatSize() {
+  // Intentionally no-op: do not overwrite the chat window's own size.
 }
 
-// Recalculate the panel heights when the browser
-// side panel or viewport changes size.
-window.addEventListener("resize", () => {
-  const card = ticketArea.querySelector(".ticket-card");
-
-  if (card) {
-    syncInsightChatSize(card);
-  }
-});
-
-
-
-// =====================================
 // =====================================
 // DRAGGABLE + RESIZABLE AI WINDOWS
 // =====================================
