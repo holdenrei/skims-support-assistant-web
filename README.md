@@ -10,6 +10,17 @@ Private standalone SKIMS customer-support drafting workspace.
 - Read-only Kustomer conversation and attachment import using the existing Kustomer API workflow
 - Groq API calls stay on the server; the API key is never placed in browser code
 
+## AI insight and internal policy knowledge
+
+The AI Insight analyzes the full imported conversation in chronological order and focuses on three sections:
+- **Summary** — what happened and which actions are confirmed complete
+- **Customer's main concern** — the customer's current unresolved issue
+- **Suggested resolution** — the appropriate policy-based handling and next action in one section
+
+The internal SKIMS policy knowledge base is maintained in `skimsPolicyKnowledge` in `server.js`. It currently covers the supplied SOP guidance for missing items, wrong items, international lost packages, lost in transit, dead tracking, and returned-to-sender cases. The same internal guidance is available to AI Insight, Chat with AI, response drafting, and response refinement.
+
+Internal procedures (macros, courtesy thresholds, claims/forms, tags, Timeline/TL notes, GE Admin, OPS/Slack handoffs, and internal ticket statuses) are agent-only and must not appear in customer-facing drafts. Add future policy updates to this knowledge base and keep the source SOP as the authority. Where a policy detail is ambiguous or missing, the assistant should flag it rather than guess.
+
 ## Render deployment
 Create a **new Render Web Service** connected to this repository. Keep the separate Chrome-extension repository/service unchanged.
 
