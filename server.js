@@ -545,7 +545,7 @@ const server = http.createServer(async (req, res) => {
     !API_KEY
   ) {
     return sendJson(res, 500, {
-      error: "GROQ_API_KEY is missing. Check your backend .env file."
+      error: "GROQ_API_KEY is missing. Check the service environment variables."
     });
   }
 
