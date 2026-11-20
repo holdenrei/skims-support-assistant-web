@@ -536,23 +536,32 @@ async function getGroqRetryDelay(response, fallbackMs) {
 // Keep Groq requests below the shared on-demand TPM ceiling.
 // The estimate includes a safety margin for message framing and tokenizer variance.
 function getSafeCompletionTokenLimit(systemText, promptText, requestedLimit) {
+  // The previous character-based estimate was calibrated too conservatively:
+  // Render logs showed 8,794 estimated input tokens versus 6,129 actual tokens.
+  // Use a more realistic English-prompt ratio while retaining framing and TPM
+  // safety margins. This is an estimate, not a substitute for Groq's TPM checks.
   const inputCharacters =
     String(systemText || "").length +
-    String(promptText || "").length +
-    1200;
+    String(promptText || "").length;
 
-  const estimatedInputTokens = Math.ceil(inputCharacters / 3.7);
+  const estimatedInputTokens = Math.ceil(inputCharacters / 4.6) + 600;
   const safeRequestBudget = 7600;
-  const safetyMargin = 200;
+  const safetyMargin = 300;
   const availableCompletionTokens =
     safeRequestBudget - estimatedInputTokens - safetyMargin;
 
-  // Do not reject short tickets locally just because the fixed system prompt
-  // leaves a small completion budget. Always make a bounded request and let
-  // Groq return its actual limit error if the input itself is still too large.
-  const boundedCompletionTokens = Math.max(
-    64,
-    Math.min(requestedLimit, availableCompletionTokens)
+  // Never send a request with a token allowance too small to produce a useful
+  // draft. If the prompt itself consumes nearly all of the TPM budget, explain
+  // that constraint instead of silently allowing reasoning to consume the reply.
+  if (availableCompletionTokens < 512) {
+    throw new Error(
+      "This conversation and its required policy context exceed the current AI request budget. Please remove unrelated conversation history and try again. Your SKIMS policy instructions have not been removed."
+    );
+  }
+
+  const boundedCompletionTokens = Math.min(
+    requestedLimit,
+    availableCompletionTokens
   );
 
   console.log(
