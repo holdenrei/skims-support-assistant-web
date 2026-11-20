@@ -1,8 +1,8 @@
 {
-  "name": "skims-email-generator-backend",
+  "name": "skims-support-assistant-web",
   "version": "1.0.0",
   "private": true,
-  "description": "Local-only backend for the SKIMS email generator Chrome extension",
+  "description": "Private SKIMS customer support drafting website and Kustomer import bridge",
   "scripts": { "start": "node server.js" },
   "engines": { "node": ">=18" }
 }
