@@ -1067,9 +1067,9 @@ async function sendInsightMessage(t, input) {
   } catch (e) {
     if (requestId !== t.insightChatRequestId) return;
 
-    t.insightChatError =
-      e.message ||
-      "Unable to send your message to the AI assistant.";
+    t.insightChatError = /rate limit|tokens per minute|\b429\b/i.test(e.message || "")
+      ? "The AI service is temporarily at its usage limit. Please wait about 10–15 seconds, then send your message again."
+      : (e.message || "Unable to send your message to the AI assistant.");
 
   } finally {
     if (requestId === t.insightChatRequestId) {
@@ -1161,8 +1161,9 @@ async function generateInsight(t) {
   } catch (e) {
     if (requestId !== t.insightRequestId) return;
 
-    t.insightError =
-      e.message || "AI case analysis failed.";
+    t.insightError = /rate limit|tokens per minute|\b429\b/i.test(e.message || "")
+      ? "The AI service is temporarily at its usage limit. Please wait about 10–15 seconds, then select Refresh insight. Your imported conversation is safe."
+      : (e.message || "AI case analysis failed.");
 
   } finally {
     if (requestId === t.insightRequestId) {
