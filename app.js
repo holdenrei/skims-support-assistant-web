@@ -1230,7 +1230,13 @@ async function submitLogin(password) {
     throw new Error(data.error || "Unable to sign in. Please try again.");
   }
   sessionStorage.setItem(AUTH_STORAGE_KEY, data.token);
-  showWorkspace();
+
+  // A fresh sign-in starts with a clean local workspace. Ticket data is
+  // browser-local, so clear any previous agent's saved tickets on this device.
+  localStorage.removeItem(STORAGE_KEY);
+
+  // Reload so the in-memory ticket objects are recreated empty.
+  window.location.reload();
 }
 
 async function initializeAuthentication() {
