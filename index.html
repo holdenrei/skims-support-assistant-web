@@ -1,0 +1,251 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7efed">
+  <title>SKIMS Support Assistant</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="brand">
+      <div class="wordmark">SKIMS</div>
+      <div>
+        <h1>Support Assistant</h1>
+        <p>Customer care workspace</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <span class="privacy-pill"><i></i> Read-only workspace</span>
+      <button class="icon-btn" id="collapseAll" title="Collapse all tickets">−</button>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active">▦ <span>5 Tickets</span></button>
+    <span class="tab-note">Work on multiple conversations independently</span>
+  </nav>
+
+  <main class="workspace">
+    <aside class="ticket-rail">
+      <div class="rail-heading">
+        <span>YOUR TICKETS</span>
+        <span id="ticketCount">0 / 5</span>
+      </div>
+      <div id="ticketNav" class="ticket-nav"></div>
+      <div class="rail-note">
+        <span class="spark">✦</span>
+        <b>One workspace, five cases</b>
+        <p>Each ticket keeps its own conversation, resolution notes, and draft while you switch between customers.</p>
+      </div>
+    </aside>
+
+    <section class="ticket-area" id="ticketArea" aria-live="polite"></section>
+  </main>
+
+  <footer class="footer">
+    <span>SKIMS SUPPORT ASSISTANT</span>
+    <span>Review every response before sending it in your support platform.</span>
+    <span class="footer-credit">Created with care by <b>Holden</b> ✦</span>
+  </footer>
+</div>
+
+<template id="ticketTemplate">
+  <article class="ticket-card">
+
+    <div class="ticket-head">
+      <div>
+        <span class="ticket-kicker">CUSTOMER WORKSPACE</span>
+        <h2>
+          Ticket <b class="ticket-number"></b>
+          <span class="customer-title"> · New customer</span>
+        </h2>
+      </div>
+      <div class="head-actions">
+        <span class="status-chip">Not imported</span>
+        <button class="icon-btn collapse-ticket" title="Collapse ticket">⌃</button>
+      </div>
+    </div>
+
+    <div class="ticket-body">
+
+      <section class="import-section">
+        <label>KUSTOMER CONVERSATION URL</label>
+        <div class="import-row">
+          <input class="conversation-url" type="url" placeholder="Paste this customer's Kustomer conversation URL">
+          <button class="btn btn-soft import-btn">Import conversation</button>
+        </div>
+        <p class="microcopy import-status">Paste the URL belonging to this ticket only.</p>
+      </section>
+
+      <section class="conversation-section">
+        <div class="section-heading">
+          <div>
+            <span class="section-icon">▤</span>
+            <h3>Conversation</h3>
+            <p class="section-sub">Customer and agent message history</p>
+          </div>
+          <button class="text-btn view-conversation">View details</button>
+        </div>
+
+        <div class="conversation-empty">
+          <span class="empty-icon">▤</span>
+          <b>No conversation imported yet</b>
+          <p>Import this ticket to review its messages and attachments here. A one-time bookmarklet handoff is required by browser security.</p>
+        </div>
+
+        <div class="conversation-preview" hidden></div>
+        <div class="attachment-list" hidden></div>
+      </section>
+
+      <section class="field-section">
+        <label>CUSTOMER CONCERN</label>
+        <textarea class="customer-concern" rows="3" placeholder="Your imported conversation history will appear here. Review it, then add a concise summary or key context if needed."></textarea>
+      </section>
+
+      <section class="field-section resolution-field">
+        <div class="label-row">
+          <label>INTENDED RESOLUTION</label>
+          <span class="accuracy-tag">Accuracy first</span>
+        </div>
+        <textarea class="confirmed-resolution" rows="4" placeholder="Enter confirmed findings and exactly how you want the response handled. Include what to say, what to avoid, and any confirmed next steps."></textarea>
+        <p class="microcopy">Your confirmed findings and instructions guide the draft. The assistant must not invent missing facts or promises.</p>
+      </section>
+
+      <!-- FLOATING AI INSIGHT AND SEPARATE CHAT -->
+      <div class="insight-widget">
+
+        <button
+          type="button"
+          class="insight-launcher"
+          aria-label="Open AI case insight"
+          aria-expanded="false"
+          hidden
+        >
+          <span class="insight-spark">✦</span>
+          <span>AI Insight</span>
+          <i class="insight-dot" hidden></i>
+        </button>
+
+        <!-- ORIGINAL STRUCTURED CASE INSIGHT -->
+        <section class="insight-popover" hidden aria-live="polite">
+          <div class="insight-popover-head">
+            <div>
+              <strong>Case insight</strong>
+              <small>AI-generated · Internal agent guidance</small>
+            </div>
+
+            <button
+              type="button"
+              class="insight-close"
+              aria-label="Close insight"
+            >×</button>
+          </div>
+
+          <div class="insight-content"></div>
+
+          <div class="insight-status" role="status">
+            Waiting for conversation analysis.
+          </div>
+
+          <div class="insight-actions">
+            <button type="button" class="insight-chat-open">
+              ✦ Chat with AI
+            </button>
+            <button type="button" class="insight-refresh">
+              ↻ Refresh insight
+            </button>
+          </div>
+        </section>
+
+        <!-- INDEPENDENT FLOATING AI CHAT WINDOW -->
+        <section
+          class="insight-chat-popover"
+          hidden
+          aria-label="Chat with AI about this case"
+        >
+          <div class="insight-chat-head">
+            <div>
+              <strong><span>✦</span> Chat with AI</strong>
+              <small>Discuss this customer's case</small>
+            </div>
+
+            <button
+              type="button"
+              class="insight-chat-close"
+              aria-label="Close AI chat"
+            >×</button>
+          </div>
+
+          <div
+            class="insight-chat-messages"
+            role="log"
+            aria-live="polite"
+            aria-relevant="additions"
+          ></div>
+
+          <div class="insight-chat-status" role="status" aria-live="polite" hidden></div>
+
+          <div class="insight-chat-composer">
+            <textarea
+              class="insight-chat-input"
+              rows="2"
+              maxlength="3000"
+              placeholder="Ask a follow-up question..."
+              aria-label="Message the AI case assistant"
+            ></textarea>
+
+            <div class="insight-composer-footer">
+              <small>Enter to send · Shift + Enter for a new line</small>
+              <button type="button" class="insight-send">Send ➤</button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+      <!-- END FLOATING AI INSIGHT AND CHAT -->
+
+      <section class="draft-section">
+        <div class="section-heading compact">
+          <div>
+            <span class="section-icon">✧</span>
+            <h3>Response drafting</h3>
+          </div>
+        </div>
+
+        <div class="format-switch" role="group" aria-label="Response format">
+          <button data-mode="email" class="format-option selected">✉ Email</button>
+          <button data-mode="live_chat" class="format-option">▢ Live Chat</button>
+          <button data-mode="sms" class="format-option">▱ SMS</button>
+        </div>
+
+        <button class="btn btn-primary generate-btn">
+          Generate response <span>✦</span>
+        </button>
+
+        <div class="draft-status" role="status"></div>
+
+        <label class="output-label">GENERATED RESPONSE</label>
+        <textarea class="generated-output" rows="9" placeholder="Your response will appear here. Review and edit it before using it."></textarea>
+
+        <div class="output-actions">
+          <button class="btn btn-soft fix-btn" disabled>✎ Fix grammar</button>
+          <button class="btn btn-soft copy-btn" disabled>Copy response</button>
+        </div>
+      </section>
+
+      <div class="card-bottom">
+        <button class="clear-btn">Clear this ticket</button>
+        <span class="independent-note">This workspace is independent of the other four tickets.</span>
+      </div>
+
+    </div>
+  </article>
+</template>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+
+{
+  "manifest_version": 3,
+  "name": "SKIMS Automatic Conversation Importer",
+  "version": "1.0.0",
+  "description": "Connects the SKIMS Support Assistant website to open Kustomer conversations.",
+  "permissions": [
+    "tabs"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:8787/*",
+    "http://127.0.0.1:8788/*",
+    "http://localhost:8788/*",
+    "https://*.kustomerapp.com/*",
+    "https://*.api.kustomerapp.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://127.0.0.1:8788/*",
+        "http://localhost:8788/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_start"
+    }
+  ]
+}

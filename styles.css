@@ -1,0 +1,1805 @@
+
+/* =========================================
+   SKIMS SUPPORT ASSISTANT
+   Complete application stylesheet
+========================================= */
+
+:root {
+  --bg: #faf6f5;
+  --surface: #ffffff;
+  --surface-soft: #fffaf9;
+  --rose: #f4e8e6;
+  --rose-dark: #ead5d2;
+  --rose-hover: #efddda;
+  --text: #44383c;
+  --muted: #938488;
+  --muted-light: #b4a6a8;
+  --accent: #a9787d;
+  --accent-dark: #805c63;
+  --gold: #b8895b;
+  --border: #eee3e1;
+  --success: #6c927b;
+  --warning: #b68b53;
+  --danger: #b65d5d;
+  --shadow: 0 8px 28px rgba(65, 43, 48, .07);
+  --radius: 15px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: var(--bg);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #c99da0;
+  outline-offset: 2px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* =========================================
+   MAIN APPLICATION SHELL
+========================================= */
+
+.app-shell {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* =========================================
+   TOP HEADER
+========================================= */
+
+.topbar {
+  min-height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 25px;
+  background: rgba(255, 255, 255, .92);
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.wordmark {
+  font-family: Georgia, serif;
+  font-size: 27px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  color: #49383e;
+}
+
+.brand h1 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 750;
+  letter-spacing: -.2px;
+}
+
+.brand p {
+  margin: 2px 0 0;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.privacy-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 11px;
+  border: 1px solid #e8e9e1;
+  border-radius: 999px;
+  background: #fafbf7;
+  color: #78816f;
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.privacy-pill i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #8ba47d;
+}
+
+/* =========================================
+   BUTTONS
+========================================= */
+
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: white;
+  color: var(--text);
+  cursor: pointer;
+  transition: background .2s ease;
+}
+
+.icon-btn:hover {
+  background: var(--rose);
+}
+
+.btn {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .2s ease, transform .2s ease;
+}
+
+.btn:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.btn-soft {
+  background: var(--rose);
+  border-color: #edddda;
+  color: #604a50;
+}
+
+.btn-soft:hover:not(:disabled) {
+  background: var(--rose-hover);
+}
+
+.btn-primary {
+  width: 100%;
+  min-height: 43px;
+  background: #947078;
+  color: white;
+  box-shadow: 0 5px 13px rgba(128, 92, 99, .13);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #805d65;
+  transform: translateY(-1px);
+}
+
+.text-btn {
+  padding: 6px 9px;
+  border: 0;
+  background: transparent;
+  color: var(--accent-dark);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.text-btn:hover {
+  text-decoration: underline;
+}
+
+/* =========================================
+   TABS
+========================================= */
+
+.tabs {
+  min-height: 45px;
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  padding: 0 25px;
+  background: #fffdfc;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab {
+  min-height: 45px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 5px;
+  border: 0;
+  border-bottom: 2px solid var(--accent);
+  background: transparent;
+  color: var(--accent-dark);
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.tab-note {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+/* =========================================
+   MAIN WORKSPACE
+========================================= */
+
+.workspace {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 225px minmax(0, 1fr);
+  align-items: start;
+  gap: 22px;
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 22px 25px 30px;
+}
+
+/* =========================================
+   LEFT TICKET SIDEBAR
+========================================= */
+
+.ticket-rail {
+  position: sticky;
+  top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.rail-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 2px;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .1em;
+}
+
+#ticketCount {
+  color: var(--accent-dark);
+  font-size: 10px;
+}
+
+.ticket-nav {
+  display: grid;
+  gap: 7px;
+}
+
+.ticket-nav button {
+  width: 100%;
+  min-height: 59px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 10px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background .2s ease, border .2s ease;
+}
+
+.ticket-nav button:hover {
+  background: #fff;
+  border-color: var(--border);
+}
+
+.ticket-nav button.active {
+  background: white;
+  border-color: #ead8d5;
+  box-shadow: 0 4px 13px rgba(65, 43, 48, .045);
+}
+
+.ticket-number-badge {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: #f3e9e7;
+  color: #88666b;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.ticket-nav button.active .ticket-number-badge {
+  background: #947078;
+  color: white;
+}
+
+.nav-label {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.nav-label b {
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.nav-label small {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.nav-dot {
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 50%;
+  background: #ded6d5;
+}
+
+.nav-dot.ready {
+  background: #83a187;
+}
+
+.rail-note {
+  padding: 15px;
+  border: 1px solid #ebddda;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #fffaf9, #f8efed);
+}
+
+.rail-note .spark {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--gold);
+  font-size: 17px;
+}
+
+.rail-note b {
+  font-size: 11px;
+}
+
+.rail-note p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+/* =========================================
+   TICKET AREA AND CARD
+========================================= */
+
+.ticket-area {
+  min-width: 0;
+  width: 100%;
+}
+
+.ticket-card {
+  width: 100%;
+  min-width: 0;
+  overflow: visible;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.ticket-head {
+  min-height: 77px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ticket-kicker {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+
+.ticket-head h2 {
+  margin: 5px 0 0;
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.ticket-head h2 b {
+  font-weight: 800;
+}
+
+.customer-title {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.head-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-chip {
+  padding: 6px 10px;
+  border: 1px solid #eee5e2;
+  border-radius: 999px;
+  background: #faf7f6;
+  color: #958589;
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-chip.imported {
+  border-color: #e0e9df;
+  background: #f3f8f1;
+  color: #6e8c70;
+}
+
+.ticket-body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 19px;
+  padding: 20px;
+}
+
+.ticket-card.collapsed .ticket-body {
+  display: none;
+}
+
+/* =========================================
+   FORM FIELDS
+========================================= */
+
+.field-section,
+.import-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field-section > label,
+.import-section > label,
+.output-label {
+  color: #79676c;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .1em;
+}
+
+textarea,
+input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #e9dfdd;
+  border-radius: 9px;
+  background: #fffdfc;
+  color: var(--text);
+  font-size: 11px;
+  line-height: 1.6;
+  transition: border .2s ease, box-shadow .2s ease;
+}
+
+textarea {
+  min-height: 75px;
+  padding: 11px 12px;
+  resize: vertical;
+}
+
+textarea::placeholder,
+input::placeholder {
+  color: #b4a8a9;
+}
+
+textarea:focus,
+input:focus {
+  border-color: #c59da0;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(197, 157, 160, .12);
+}
+
+.resolution-field textarea {
+  min-height: 95px;
+}
+
+.label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.accuracy-tag {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #f5f0e9;
+  color: #9c805b;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.microcopy {
+  margin: 0;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.55;
+}
+
+/* =========================================
+   KUSTOMER IMPORT
+========================================= */
+
+.import-row {
+  display: flex;
+  align-items: stretch;
+  gap: 9px;
+}
+
+.conversation-url {
+  min-height: 38px;
+  flex: 1;
+  padding: 9px 11px;
+}
+
+.import-btn {
+  flex: none;
+}
+
+/* =========================================
+   CONVERSATION SECTION
+========================================= */
+
+.conversation-section {
+  padding: 14px;
+  border: 1px solid #eee5e3;
+  border-radius: 11px;
+  background: #fffdfc;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.section-heading > div {
+  min-width: 0;
+}
+
+.section-icon {
+  display: inline-block;
+  margin-right: 5px;
+  color: var(--accent);
+  font-size: 15px;
+}
+
+.section-heading h3 {
+  display: inline;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.section-sub {
+  margin: 4px 0 0 22px;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.conversation-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 125px;
+  padding: 18px;
+  text-align: center;
+}
+
+.empty-icon {
+  color: #c6a8a8;
+  font-size: 22px;
+}
+
+.conversation-empty b {
+  font-size: 11px;
+}
+
+.conversation-empty p {
+  max-width: 350px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.6;
+}
+
+.conversation-preview {
+  max-height: 190px;
+  overflow-y: auto;
+  margin-top: 13px;
+  padding-right: 5px;
+}
+
+.message-row {
+  padding: 11px 0;
+  border-top: 1px solid #f0e9e7;
+}
+
+.message-row strong {
+  color: #725c62;
+  font-size: 10px;
+}
+
+.message-time {
+  margin-left: 8px;
+  color: var(--muted-light);
+  font-size: 9px;
+}
+
+.message-row p {
+  margin: 5px 0 0;
+  color: #62565a;
+  font-size: 10px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.message-attachment {
+  display: inline-block;
+  margin: 7px 7px 0 0;
+  color: var(--accent-dark);
+  font-size: 9px;
+  text-decoration: none;
+}
+
+.message-attachment:hover {
+  text-decoration: underline;
+}
+
+.attachment-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f0e9e7;
+}
+
+.attachment-chip {
+  padding: 6px 9px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: white;
+  color: var(--accent-dark);
+  font-size: 9px;
+  text-decoration: none;
+}
+
+.attachment-preview {
+  width: 68px;
+  height: 68px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.attachment-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* =========================================
+   RESPONSE DRAFTING
+========================================= */
+
+.draft-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #eee3e1;
+  border-radius: 12px;
+  background: #fffaf9;
+}
+
+.section-heading.compact {
+  margin-bottom: 1px;
+}
+
+.format-switch {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  padding: 5px;
+  border: 1px solid #eee4e2;
+  border-radius: 9px;
+  background: #f7f1ef;
+}
+
+.format-option {
+  min-height: 34px;
+  padding: 7px 5px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #89787c;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.format-option:hover {
+  color: var(--accent-dark);
+}
+
+.format-option.selected {
+  background: white;
+  color: #805e65;
+  box-shadow: 0 2px 7px rgba(65, 43, 48, .08);
+}
+
+.draft-status {
+  min-height: 14px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.generated-output {
+  min-height: 190px;
+  background: white;
+  font-size: 11px;
+}
+
+.output-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* =========================================
+   TICKET FOOTER ACTIONS
+========================================= */
+
+.card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.clear-btn {
+  padding: 6px 0;
+  border: 0;
+  background: transparent;
+  color: #a36d70;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.clear-btn:hover {
+  text-decoration: underline;
+}
+
+.independent-note {
+  color: var(--muted-light);
+  font-size: 9px;
+}
+
+/* =========================================
+   APPLICATION FOOTER
+========================================= */
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 15px 25px;
+  border-top: 1px solid var(--border);
+  background: #fffdfc;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.footer > span:first-child {
+  color: #92777c;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .1em;
+}
+
+.footer-credit {
+  color: #9d8185;
+}
+
+.footer-credit b {
+  color: #75585f;
+}
+
+/* =========================================
+   FLOATING AI INSIGHT WIDGET
+========================================= */
+
+.insight-widget {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.insight-launcher,
+.insight-popover,
+.insight-chat-popover {
+  pointer-events: auto;
+}
+
+.insight-launcher {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  border: 1px solid #e2cbc7;
+  background: #fffaf9;
+  color: #44343b;
+  border-radius: 999px;
+  padding: 11px 16px;
+  box-shadow: 0 8px 24px rgba(55, 35, 40, .16);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.insight-launcher:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 11px 28px rgba(55, 35, 40, .2);
+}
+
+.insight-spark {
+  color: #b8895b;
+  font-size: 17px;
+}
+
+.insight-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #d36b68;
+  box-shadow: 0 0 0 3px #f8e5e3;
+}
+
+.insight-launcher[hidden],
+.insight-popover[hidden],
+.insight-chat-popover[hidden],
+.insight-dot[hidden] {
+  display: none !important;
+}
+
+@keyframes insightAppear {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================================
+   CASE INSIGHT WINDOW
+========================================= */
+
+.insight-popover {
+  position: fixed;
+  right: 22px;
+  bottom: 78px;
+  display: flex;
+  flex-direction: column;
+  width: min(360px, calc(100vw - 28px));
+  max-height: min(68vh, 540px);
+  overflow: hidden;
+  background: #fffdfc;
+  border: 1px solid #e7d8d5;
+  border-radius: 16px;
+  box-shadow: 0 16px 45px rgba(55, 35, 40, .2);
+  padding: 15px;
+  animation: insightAppear .18s ease-out;
+}
+
+.insight-popover-head {
+  flex: none;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 11px;
+  border-bottom: 1px solid #f0e7e5;
+}
+
+.insight-popover-head strong {
+  display: block;
+  font-size: 13px;
+  color: #382f35;
+}
+
+.insight-popover-head small {
+  display: block;
+  color: #97898b;
+  font-size: 10px;
+  margin-top: 3px;
+}
+
+.insight-close,
+.insight-chat-close {
+  flex: none;
+  border: 0;
+  background: #f5eeec;
+  color: #57474b;
+  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.insight-close:hover,
+.insight-chat-close:hover {
+  background: #efddda;
+}
+
+.insight-content {
+  display: grid;
+  gap: 13px;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px 2px;
+  overscroll-behavior: contain;
+}
+
+.insight-item strong {
+  display: block;
+  font-size: 9px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: #987477;
+  margin-bottom: 5px;
+}
+
+.insight-item p {
+  font-size: 12px;
+  line-height: 1.55;
+  color: #4b4144;
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.insight-welcome strong {
+  display: block;
+  margin-bottom: 5px;
+  color: #725c62;
+  font-size: 12px;
+}
+
+.insight-welcome p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.insight-status {
+  flex: none;
+  font-size: 10px;
+  color: #928487;
+  line-height: 1.5;
+  min-height: 14px;
+  margin-bottom: 9px;
+}
+
+.insight-status.error {
+  color: #b14c4c;
+}
+
+.insight-status.stale {
+  color: #a4773e;
+}
+
+.insight-actions {
+  flex: none;
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid #f0e7e5;
+}
+
+.insight-refresh,
+.insight-chat-open,
+.insight-send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px 11px;
+  border: 1px solid var(--rose-dark);
+  border-radius: 8px;
+  background: var(--rose);
+  color: var(--accent-dark);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: background .2s ease, border-color .2s ease;
+}
+
+.insight-refresh:hover,
+.insight-chat-open:hover,
+.insight-send:hover {
+  background: var(--rose-hover);
+  border-color: var(--accent);
+}
+
+.insight-refresh:disabled,
+.insight-chat-open:disabled,
+.insight-send:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+/* =========================================
+   SEPARATE AI CHAT WINDOW
+========================================= */
+
+.insight-chat-popover {
+  position: fixed;
+  right: 400px;
+  bottom: 78px;
+  width: min(360px, calc(100vw - 28px));
+  height: min(540px, 68vh);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #fffdfc;
+  border: 1px solid #e7d8d5;
+  border-radius: 16px;
+  box-shadow: 0 16px 45px rgba(55, 35, 40, .2);
+  padding: 15px;
+  animation: insightAppear .18s ease-out;
+}
+
+.insight-chat-head {
+  flex: none;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0e7e5;
+}
+
+.insight-chat-head strong {
+  display: block;
+  color: #382f35;
+  font-size: 13px;
+}
+
+.insight-chat-head strong span {
+  color: #b8895b;
+  margin-right: 3px;
+}
+
+.insight-chat-head small {
+  display: block;
+  margin-top: 3px;
+  color: #97898b;
+  font-size: 10px;
+}
+
+/* Chat messages */
+
+.insight-chat-messages {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 13px 3px 9px;
+  scroll-behavior: smooth;
+}
+
+.insight-message {
+  width: fit-content;
+  max-width: 88%;
+  border: 1px solid #eee4e2;
+  border-radius: 13px;
+}
+
+.insight-message.user {
+  align-self: flex-end;
+  background: var(--rose);
+  border-color: var(--rose-dark);
+  border-radius: 13px 13px 3px 13px;
+}
+
+.insight-message.assistant {
+  align-self: flex-start;
+  background: var(--surface-soft);
+  border-radius: 13px 13px 13px 3px;
+}
+
+.insight-message-text {
+  margin: 0;
+  padding: 9px 11px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.insight-typing .insight-message-text {
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* Chat status and errors */
+
+.insight-chat-status {
+  flex: none;
+  margin-top: 3px;
+  color: var(--danger);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+/* Composer */
+
+.insight-chat-composer {
+  flex: none;
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 1px solid #f0e7e5;
+  background: #fffdfc;
+}
+
+.insight-chat-input {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  max-height: 110px;
+  padding: 10px 11px;
+  resize: vertical;
+  border: 1px solid var(--rose-dark);
+  border-radius: 9px;
+  background: #fff;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.insight-chat-input::placeholder {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.insight-chat-input:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(169, 120, 125, .10);
+}
+
+.insight-chat-input:disabled {
+  background: #faf6f5;
+  opacity: .7;
+}
+
+.insight-composer-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.insight-composer-footer small {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.insight-send {
+  flex: none;
+  min-width: 70px;
+}
+
+/* =========================================
+   RESPONSIVE LAYOUT
+========================================= */
+
+@media (max-width: 900px) {
+  .workspace {
+    grid-template-columns: 185px minmax(0, 1fr);
+    gap: 14px;
+    padding: 16px;
+  }
+
+  .topbar {
+    padding-left: 17px;
+    padding-right: 17px;
+  }
+
+  .tabs {
+    padding-left: 17px;
+    padding-right: 17px;
+  }
+
+  .ticket-body {
+    padding: 15px;
+  }
+
+  .ticket-head {
+    padding: 13px 15px;
+  }
+}
+
+/* Stack the two floating windows on narrower screens. */
+@media (max-width: 780px) {
+  .insight-popover {
+    right: 12px;
+    bottom: calc(68px + min(36vh, 300px) + 12px);
+    width: min(420px, calc(100vw - 24px));
+    max-height: min(36vh, 300px);
+  }
+
+  .insight-chat-popover {
+    right: 12px;
+    bottom: 68px;
+    width: min(420px, calc(100vw - 24px));
+    height: min(36vh, 300px);
+  }
+
+  .insight-widget {
+    right: 12px;
+    bottom: 12px;
+  }
+}
+
+@media (max-width: 650px) {
+  .workspace {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 12px;
+  }
+
+  .ticket-rail {
+    position: static;
+    gap: 8px;
+  }
+
+  .ticket-nav {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .ticket-nav button {
+    min-height: 53px;
+    justify-content: center;
+    padding: 6px 3px;
+  }
+
+  .ticket-number-badge {
+    width: 27px;
+    height: 27px;
+  }
+
+  .nav-label,
+  .nav-dot,
+  .rail-note {
+    display: none;
+  }
+
+  .rail-heading {
+    padding: 0 2px;
+  }
+
+  .topbar {
+    min-height: 65px;
+  }
+
+  .footer {
+    padding: 13px 15px;
+  }
+}
+
+@media (max-width: 420px) {
+  .wordmark {
+    font-size: 22px;
+  }
+
+  .brand {
+    gap: 9px;
+  }
+
+  .brand h1 {
+    font-size: 12px;
+  }
+
+  .brand p {
+    font-size: 9px;
+  }
+
+  .privacy-pill {
+    padding: 6px 8px;
+    font-size: 9px;
+  }
+
+  .tabs {
+    gap: 10px;
+  }
+
+  .tab-note {
+    font-size: 9px;
+  }
+
+  .ticket-body {
+    padding: 12px;
+    gap: 15px;
+  }
+
+  .ticket-head {
+    padding: 12px;
+  }
+
+  .import-row {
+    flex-direction: column;
+  }
+
+  .import-btn {
+    width: 100%;
+  }
+
+  .format-option {
+    font-size: 9px;
+  }
+
+  .output-actions .btn {
+    flex: 1;
+  }
+
+  .independent-note {
+    display: none;
+  }
+
+  .insight-widget {
+    right: 12px;
+    bottom: 12px;
+  }
+
+  .insight-launcher {
+    padding: 10px 13px;
+    font-size: 11px;
+  }
+
+  .insight-actions {
+    gap: 6px;
+  }
+
+  .insight-refresh,
+  .insight-chat-open {
+    padding: 7px 9px;
+    font-size: 10px;
+  }
+
+  .insight-composer-footer small {
+    font-size: 8px;
+  }
+}
+
+/* Short screens: preserve enough room for both floating panels. */
+@media (max-height: 560px) and (max-width: 780px) {
+  .insight-popover {
+    bottom: 68px;
+    max-height: 42vh;
+  }
+
+  .insight-chat-popover {
+    bottom: calc(68px + 42vh + 10px);
+    height: 42vh;
+  }
+}
+
+
+/* =========================================
+   SKIMS FLOATING WINDOWS
+   RESPONSIVE SIDE-PANEL LAYOUT
+========================================= */
+
+:root {
+  --floating-edge: 12px;
+  --floating-gap: 8px;
+  --floating-panel-width: clamp(
+    132px,
+    calc((100vw - 36px) / 2),
+    330px
+  );
+}
+
+/* Main floating widget */
+.insight-widget {
+  position: fixed;
+  right: var(--floating-edge);
+  bottom: 12px;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+/* Compact launcher */
+.insight-launcher {
+  padding: 9px 13px;
+  gap: 6px;
+  font-size: 11px;
+}
+
+/* =========================================
+   RIGHT WINDOW — CASE INSIGHT
+========================================= */
+
+.insight-popover {
+  position: fixed;
+  right: var(--floating-edge);
+  bottom: 66px;
+
+  width: var(--floating-panel-width);
+  max-width: none;
+
+  height: auto;
+  max-height: none;
+  overflow: visible;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 11px;
+  border-radius: 13px;
+  background: #fffdfc;
+  border: 1px solid #e7d8d5;
+  box-shadow: 0 10px 30px rgba(55, 35, 40, .17);
+}
+
+/* Smaller insight heading */
+.insight-popover-head {
+  padding-bottom: 8px;
+  gap: 5px;
+}
+
+.insight-popover-head strong {
+  font-size: 11px;
+}
+
+.insight-popover-head small {
+  font-size: 8px;
+}
+
+.insight-close,
+.insight-chat-close {
+  width: 24px;
+  height: 24px;
+  font-size: 15px;
+  border-radius: 7px;
+}
+
+/* Display all five findings without an internal scrollbar */
+.insight-content {
+  display: grid;
+  gap: 9px;
+
+  min-height: auto;
+  max-height: none;
+  overflow: visible;
+
+  padding: 10px 1px;
+}
+
+.insight-item strong {
+  font-size: 8px;
+  margin-bottom: 3px;
+  letter-spacing: .07em;
+}
+
+.insight-item p {
+  font-size: 10px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.insight-welcome strong {
+  font-size: 10px;
+}
+
+.insight-welcome p {
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+/* Insight status and actions */
+.insight-status {
+  font-size: 8px;
+  min-height: 10px;
+  margin-bottom: 5px;
+  line-height: 1.35;
+}
+
+.insight-actions {
+  gap: 5px;
+  padding-top: 8px;
+}
+
+.insight-refresh,
+.insight-chat-open {
+  padding: 6px 7px;
+  font-size: 9px;
+  border-radius: 7px;
+}
+
+/* =========================================
+   LEFT WINDOW — AI CHAT
+========================================= */
+
+.insight-chat-popover {
+  position: fixed;
+
+  /* Automatically position chat beside insight */
+  right: calc(
+    var(--floating-edge) +
+    var(--floating-panel-width) +
+    var(--floating-gap)
+  );
+
+  bottom: 66px;
+
+  width: var(--floating-panel-width);
+
+  /* Height is synchronized with insight by JavaScript */
+  height: auto;
+  max-height: none;
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  padding: 11px;
+  border-radius: 13px;
+  background: #fffdfc;
+  border: 1px solid #e7d8d5;
+  box-shadow: 0 10px 30px rgba(55, 35, 40, .17);
+}
+
+/* Chat heading */
+.insight-chat-head {
+  flex: none;
+  padding-bottom: 8px;
+  gap: 5px;
+}
+
+.insight-chat-head strong {
+  font-size: 11px;
+}
+
+.insight-chat-head small {
+  font-size: 8px;
+}
+
+/* Chat messages take only the available space */
+.insight-chat-messages {
+  flex: 1 1 0;
+  min-height: 65px;
+  max-height: none;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  gap: 7px;
+  padding: 9px 2px 6px;
+  overscroll-behavior: contain;
+}
+
+/* Compact message bubbles */
+.insight-message {
+  max-width: 96%;
+  border-radius: 10px;
+}
+
+.insight-message-text {
+  padding: 7px 8px;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+/* Chat status */
+.insight-chat-status {
+  flex: none;
+  margin-top: 3px;
+  font-size: 8px;
+}
+
+/* Compact composer */
+.insight-chat-composer {
+  flex: none;
+  margin-top: 6px;
+  padding-top: 7px;
+}
+
+.insight-chat-input {
+  min-height: 36px;
+  max-height: 75px;
+  padding: 7px 8px;
+  font-size: 10px;
+  line-height: 1.4;
+  resize: vertical;
+}
+
+.insight-chat-input::placeholder {
+  font-size: 9px;
+}
+
+.insight-composer-footer {
+  margin-top: 5px;
+  gap: 4px;
+}
+
+.insight-composer-footer small {
+  font-size: 7px;
+  line-height: 1.3;
+}
+
+.insight-send {
+  min-width: 48px;
+  padding: 6px 7px;
+  font-size: 9px;
+}
+
+/* =========================================
+   NARROW SIDE-PANEL ADJUSTMENTS
+========================================= */
+
+@media (max-width: 480px) {
+  :root {
+    --floating-edge: 9px;
+    --floating-gap: 6px;
+    --floating-panel-width: calc((100vw - 30px) / 2);
+  }
+
+  .insight-popover,
+  .insight-chat-popover {
+    bottom: 61px;
+    padding: 8px;
+    border-radius: 11px;
+  }
+
+  .insight-content {
+    gap: 7px;
+    padding: 8px 0;
+  }
+
+  .insight-item strong {
+    font-size: 7px;
+  }
+
+  .insight-item p {
+    font-size: 9px;
+    line-height: 1.35;
+  }
+
+  .insight-popover-head strong,
+  .insight-chat-head strong {
+    font-size: 10px;
+  }
+
+  .insight-popover-head small,
+  .insight-chat-head small {
+    font-size: 7px;
+  }
+
+  .insight-actions {
+    gap: 4px;
+  }
+
+  .insight-refresh,
+  .insight-chat-open {
+    padding: 5px;
+    font-size: 8px;
+  }
+
+  .insight-chat-messages {
+    min-height: 50px;
+    gap: 5px;
+  }
+
+  .insight-message-text {
+    padding: 6px;
+    font-size: 8px;
+  }
+
+  .insight-chat-input {
+    min-height: 32px;
+    font-size: 9px;
+  }
+
+  .insight-send {
+    min-width: 42px;
+    padding: 5px;
+    font-size: 8px;
+  }
+}
