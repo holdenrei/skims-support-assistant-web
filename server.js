@@ -38,7 +38,7 @@ const PORT = Number(process.env.PORT || 8787);
 const API_KEY = process.env.GROQ_API_KEY;
 const MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
 const APP_ACCESS_PASSWORD = process.env.APP_ACCESS_PASSWORD || "";
-const APP_ORIGIN = (process.env.APP_ORIGIN || "").replace(/\\/$/, "");
+const APP_ORIGIN = (process.env.APP_ORIGIN || "").replace(/\/$/, "");
 const sessions = new Map();
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000;
 
@@ -386,7 +386,8 @@ const server = http.createServer(async (req, res) => {
   // IMPORT STATUS
   // =====================================
 
-  const bearer = String(req.headers.authorization || "").replace(/^Bearer\\s+/i, "");
+  const bearerHeader = String(req.headers.authorization || "");
+  const bearer = bearerHeader.toLowerCase().startsWith("bearer ") ? bearerHeader.slice(7).trim() : "";
   const activeSession = bearer ? sessions.get(bearer) : null;
   if (activeSession && activeSession.expiresAt < Date.now()) sessions.delete(bearer);
 
@@ -489,7 +490,7 @@ const server = http.createServer(async (req, res) => {
   // Serve the standalone website from this same Render service.
   if (req.method === "GET" && !route.startsWith("/import/") && route !== "/health") {
     let requested;
-    try { requested = route === "/" ? "index.html" : decodeURIComponent(route.replace(/^\\/+/, "")); }
+    try { requested = route === "/" ? "index.html" : decodeURIComponent(route.startsWith("/") ? route.slice(1) : route); }
     catch { res.writeHead(400); return res.end("Bad request"); }
     const publicFiles = new Set(["index.html", "app.js", "styles.css"]);
     if (!publicFiles.has(requested)) {
