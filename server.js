@@ -491,18 +491,18 @@ const server = http.createServer(async (req, res) => {
     let requested;
     try { requested = route === "/" ? "index.html" : decodeURIComponent(route.replace(/^\\/+/, "")); }
     catch { res.writeHead(400); return res.end("Bad request"); }
-    const root = path.resolve(__dirname);
-    const filePath = path.resolve(root, requested);
-    if (filePath !== root && !filePath.startsWith(root + path.sep)) {
-      res.writeHead(403); return res.end("Forbidden");
+    const publicFiles = new Set(["index.html", "app.js", "styles.css"]);
+    if (!publicFiles.has(requested)) {
+      res.writeHead(404, {"Content-Type":"text/plain; charset=utf-8"});
+      return res.end("Not found");
     }
+    const filePath = path.join(__dirname, requested);
     const types = { ".html":"text/html; charset=utf-8", ".css":"text/css; charset=utf-8",
-      ".js":"text/javascript; charset=utf-8", ".json":"application/json; charset=utf-8",
-      ".txt":"text/plain; charset=utf-8", ".svg":"image/svg+xml" };
+      ".js":"text/javascript; charset=utf-8" };
     return fs.readFile(filePath, (err, content) => {
       if (err) { res.writeHead(404, {"Content-Type":"text/plain; charset=utf-8"}); return res.end("Not found"); }
-      res.writeHead(200, {"Content-Type":types[path.extname(filePath)] || "application/octet-stream",
-        "X-Content-Type-Options":"nosniff", "Cache-Control":path.extname(filePath)===".html"?"no-cache":"public, max-age=300"});
+      res.writeHead(200, {"Content-Type":types[path.extname(filePath)],
+        "X-Content-Type-Options":"nosniff", "Cache-Control":requested==="index.html"?"no-cache":"public, max-age=300"});
       res.end(content);
     });
   }
