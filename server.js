@@ -303,6 +303,30 @@ SELECTED RESPONSE FORMAT: ${mode.toUpperCase()}
 Follow the selected format and its specific requirements above.`;
 }
 
+// Respect Groq's Retry-After header or the wait duration in its
+// rate-limit message. Cap the wait so a request cannot hang indefinitely.
+async function getGroqRetryDelay(response, fallbackMs) {
+  let retryMs = 0;
+
+  const retryAfter = Number(response.headers.get("retry-after"));
+  if (Number.isFinite(retryAfter) && retryAfter > 0) {
+    retryMs = retryAfter * 1000;
+  }
+
+  if (!retryMs) {
+    try {
+      const payload = await response.clone().json();
+      const message = payload.error?.message || "";
+      const match = message.match(/try again in\\s+([\\d.]+)\\s*s/i);
+      if (match) retryMs = Math.ceil(Number(match[1]) * 1000) + 500;
+    } catch {
+      // Use the fallback delay if the response body is not JSON.
+    }
+  }
+
+  return Math.min(Math.max(retryMs || fallbackMs, 1000), 30000);
+}
+
 // =====================================
 // GROQ API WITH RETRY
 // =====================================
@@ -312,7 +336,7 @@ async function callGroqWithRetry(
   mode = "email",
   systemInstruction = null
 ) {
-  const delays = [1500, 3000];
+  const delays = [1500, 3000, 10000];
 
   for (let attempt = 0; attempt <= delays.length; attempt++) {
     console.log(`Groq request attempt ${attempt + 1}/3`);
@@ -372,8 +396,15 @@ async function callGroqWithRetry(
       `Groq returned ${response.status}. Retrying in ${delays[attempt] / 1000} seconds...`
     );
 
+    const retryDelay = await getGroqRetryDelay(
+      response,
+      delays[attempt]
+    );
+
+    console.log(`Waiting ${Math.ceil(retryDelay / 1000)} seconds before retrying Groq...`);
+
     await new Promise(resolve =>
-      setTimeout(resolve, delays[attempt])
+      setTimeout(resolve, retryDelay)
     );
   }
 }
