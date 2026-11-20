@@ -891,7 +891,7 @@ CONVERSATION STYLE:
 3. Usually answer in 1–4 short sentences.
 4. Use bullets only when they genuinely make an answer easier to understand.
 5. Do not repeat the original case summary unless specifically requested.
-6. Do not restate all five sections of the original insight.
+6. Do not restate all three sections of the original insight.
 7. Avoid unnecessary introductions, headings, labels, and formal explanations.
 8. Do not begin every reply with phrases such as "Based on the information provided."
 9. Do not repeatedly thank the agent or use generic customer-service language.
