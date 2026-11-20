@@ -818,11 +818,11 @@ const server = http.createServer(async (req, res) => {
       if (route === "/insight-chat") {
         const customerContext = String(
           body.customerContext || ""
-        ).slice(0, 18000);
+        ).slice(0, 80000);
 
         const agentNotes = String(
           body.agentNotes || ""
-        ).slice(0, 6000);
+        ).slice(0, 10000);
 
         const messages = Array.isArray(body.messages)
           ? body.messages.slice(-20)
@@ -979,11 +979,11 @@ The following conversation contains the agent's questions, corrections, and your
       if (route === "/insight") {
         const customerContext = String(
           body.customerContext || ""
-        ).slice(0, 12000);
+        ).slice(0, 80000);
 
         const agentNotes = String(
           body.agentNotes || ""
-        ).slice(0, 6000);
+        ).slice(0, 10000);
 
         if (!customerContext.trim()) {
           throw new Error(
@@ -1159,6 +1159,8 @@ Revise the current response minimally. Preserve its meaning, resolution, facts, 
         const refineSystem = `${instructions}
 
 ${carrierPolicyInstructions}
+
+${skimsPolicyKnowledge}
 
 You are refining an existing SKIMS customer support response in ${mode.toUpperCase()} format.
 
