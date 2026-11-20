@@ -22,6 +22,7 @@ const tickets = Array.from({ length: 5 }, (_, i) => ({
   customerName: "",
   insight: null,
   insightChat: [],
+  insightWindowLayout: {},
   insightOpen: false,
   insightChatOpen: false,
   insightUnread: false,
@@ -61,6 +62,7 @@ function saveTicketData() {
       customerName: t.customerName,
       insight: t.insight,
       insightChat: t.insightChat,
+      insightWindowLayout: t.insightWindowLayout || {},
       insightStale: t.insightStale,
       insightChatError: t.insightChatError
     }));
@@ -105,6 +107,7 @@ function restoreTicketData() {
       t.collapsed = Boolean(item.collapsed);
       t.customerName = item.customerName || "";
       t.insight = item.insight || null;
+      t.insightWindowLayout = item.insightWindowLayout || {};
 
       t.insightChat = Array.isArray(item.insightChat)
         ? item.insightChat
@@ -454,6 +457,10 @@ function renderInsight(card, t) {
     t.conversation.length > 0 ||
     t.insightChat.length > 0;
 
+  // Restore saved dimensions and position after each ticket rerender.
+  applyFloatingWindowLayout(insightPopover, t.insightWindowLayout?.insight);
+  applyFloatingWindowLayout(chatPopover, t.insightWindowLayout?.chat);
+
   // Main insight launcher and panel.
   launcher.hidden = !hasConversation;
   insightPopover.hidden =
@@ -660,10 +667,93 @@ window.addEventListener("resize", () => {
 
 
 // =====================================
+// =====================================
+// DRAGGABLE + RESIZABLE AI WINDOWS
+// =====================================
+
+function applyFloatingWindowLayout(panel, layout) {
+  if (!panel || !layout) return;
+  if (Number.isFinite(layout.width)) panel.style.width = `${layout.width}px`;
+  if (Number.isFinite(layout.height)) panel.style.height = `${layout.height}px`;
+  if (Number.isFinite(layout.left) && Number.isFinite(layout.top)) {
+    panel.style.left = `${layout.left}px`;
+    panel.style.top = `${layout.top}px`;
+    panel.style.right = "auto";
+    panel.style.bottom = "auto";
+  }
+}
+
+function setupFloatingWindowInteractions(card, ticket) {
+  [
+    { panel: ".insight-popover", head: ".insight-popover-head", key: "insight" },
+    { panel: ".insight-chat-popover", head: ".insight-chat-head", key: "chat" }
+  ].forEach(({ panel: panelSelector, head: headSelector, key }) => {
+    const panel = $(card, panelSelector);
+    const head = $(panel, headSelector);
+    if (!panel || !head || panel.dataset.dragReady) return;
+    panel.dataset.dragReady = "true";
+    head.style.cursor = "grab";
+    head.style.touchAction = "none";
+    let drag = null;
+
+    head.addEventListener("pointerdown", event => {
+      if (event.target.closest("button, input, textarea, a")) return;
+      const rect = panel.getBoundingClientRect();
+      drag = { id: event.pointerId, x: event.clientX, y: event.clientY, left: rect.left, top: rect.top };
+      panel.style.left = `${rect.left}px`;
+      panel.style.top = `${rect.top}px`;
+      panel.style.right = "auto";
+      panel.style.bottom = "auto";
+      head.setPointerCapture(event.pointerId);
+      head.style.cursor = "grabbing";
+      event.preventDefault();
+    });
+
+    head.addEventListener("pointermove", event => {
+      if (!drag || event.pointerId !== drag.id) return;
+      const rect = panel.getBoundingClientRect();
+      const left = Math.max(0, Math.min(innerWidth - rect.width, drag.left + event.clientX - drag.x));
+      const top = Math.max(0, Math.min(innerHeight - 64, drag.top + event.clientY - drag.y));
+      panel.style.left = `${left}px`;
+      panel.style.top = `${top}px`;
+    });
+
+    const finish = event => {
+      if (!drag || event.pointerId !== drag.id) return;
+      drag = null;
+      head.style.cursor = "grab";
+      saveFloatingWindowLayout(panel, ticket, key);
+    };
+    head.addEventListener("pointerup", finish);
+    head.addEventListener("pointercancel", finish);
+
+    if ("ResizeObserver" in window) {
+      const observer = new ResizeObserver(() => {
+        if (panel.isConnected && !panel.hidden) saveFloatingWindowLayout(panel, ticket, key);
+      });
+      observer.observe(panel);
+    }
+  });
+}
+
+function saveFloatingWindowLayout(panel, ticket, key) {
+  if (!panel || panel.hidden) return;
+  const rect = panel.getBoundingClientRect();
+  ticket.insightWindowLayout = ticket.insightWindowLayout || {};
+  ticket.insightWindowLayout[key] = {
+    width: Math.round(rect.width),
+    height: Math.round(rect.height),
+    left: panel.style.left && panel.style.left !== "auto" ? Math.round(rect.left) : null,
+    top: panel.style.top && panel.style.top !== "auto" ? Math.round(rect.top) : null
+  };
+  saveTicketData();
+}
+
 // CARD EVENT HANDLERS
 // =====================================
 
 function bindCard(card, t) {
+  setupFloatingWindowInteractions(card, t);
 
   $(card, ".conversation-url").addEventListener("input", e => {
     t.url = e.target.value.trim();
