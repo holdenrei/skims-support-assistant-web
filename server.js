@@ -542,18 +542,24 @@ function getSafeCompletionTokenLimit(systemText, promptText, requestedLimit) {
     1200;
 
   const estimatedInputTokens = Math.ceil(inputCharacters / 3.7);
-  const safeRequestBudget = 7400;
-  const safetyMargin = 300;
+  const safeRequestBudget = 7600;
+  const safetyMargin = 200;
   const availableCompletionTokens =
     safeRequestBudget - estimatedInputTokens - safetyMargin;
 
-  if (availableCompletionTokens < 256) {
-    throw new Error(
-      "This ticket contains too much conversation or policy context for the current AI request limit. Please shorten the pasted conversation and try again."
-    );
-  }
+  // Do not reject short tickets locally just because the fixed system prompt
+  // leaves a small completion budget. Always make a bounded request and let
+  // Groq return its actual limit error if the input itself is still too large.
+  const boundedCompletionTokens = Math.max(
+    64,
+    Math.min(requestedLimit, availableCompletionTokens)
+  );
 
-  return Math.min(requestedLimit, availableCompletionTokens);
+  console.log(
+    `Groq token estimate: input≈${estimatedInputTokens}, completion cap=${boundedCompletionTokens}`
+  );
+
+  return boundedCompletionTokens;
 }
 
 // =====================================
