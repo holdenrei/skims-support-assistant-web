@@ -161,6 +161,56 @@ These policies must always be followed whenever relevant to the customer's case.
 - Never invent exceptions, approvals, alternative policies, or actions.
 `;
 
+// Retrieve current official SKIMS size-guide content for AI sizing analysis.
+let skimsSizingGuideCache = { fetchedAt: 0, text: "" };
+
+async function getSkimsSizingGuideReference() {
+  const now = Date.now();
+  if (skimsSizingGuideCache.text && now - skimsSizingGuideCache.fetchedAt < 30 * 60 * 1000) {
+    return skimsSizingGuideCache.text;
+  }
+
+  const urls = [
+    "https://www.skims.com/pages/size-guides",
+    "https://www.skims.com/pages/size-guides-shapewear"
+  ];
+
+  const pages = await Promise.allSettled(urls.map(async url => {
+    const response = await fetch(url, {
+      signal: AbortSignal.timeout(9000),
+      headers: { "User-Agent": "Mozilla/5.0 SKIMS-Support-Assistant sizing-reference" }
+    });
+    if (!response.ok) throw new Error("SKIMS size guide unavailable");
+    const html = await response.text();
+    const text = html
+      .replace(/<script[\\s\\S]*?<\\/script>/gi, " ")
+      .replace(/<style[\\s\\S]*?<\\/style>/gi, " ")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&nbsp;/gi, " ")
+      .replace(/&amp;/gi, "&")
+      .replace(/&quot;/gi, '"')
+      .replace(/&#39;|&apos;/gi, "'")
+      .replace(/\\s+/g, " ")
+      .trim();
+    return { url, text: text.slice(0, 26000) };
+  }));
+
+  const usable = pages
+    .filter(item => item.status === "fulfilled")
+    .map(item => item.value);
+
+  if (!usable.length) {
+    return "LIVE OFFICIAL SIZE-GUIDE FETCH FAILED. Do not claim to have checked the current chart. Use the links below and ask the agent to verify the exact product chart.";
+  }
+
+  const reference = "LIVE OFFICIAL SKIMS SIZE-GUIDE CONTENT (fetched from SKIMS; verify exact product/style section):\\n" +
+    usable.map(page => page.url + "\\n" + page.text).join("\\n\\n") +
+    "\\n\\nIf a table is incomplete, unavailable, or ambiguous in this page text, do not infer missing ranges. Ask the agent to verify the product-specific chart directly.";
+
+  skimsSizingGuideCache = { fetchedAt: now, text: reference };
+  return reference;
+}
+
 // =====================================
 // INTERNAL SKIMS SUPPORT POLICY KNOWLEDGE BASE
 // Agent guidance only. Never expose internal procedures in customer drafts.
@@ -969,6 +1019,9 @@ const server = http.createServer(async (req, res) => {
         }
 
         const chatSystem = `
+CURRENT OFFICIAL SKIMS SIZE CHART LOOKUP:
+${await getSkimsSizingGuideReference()}
+
 You are a friendly, intelligent internal AI assistant helping a SKIMS customer support agent handle one specific customer case.
 
 ${skimsPolicyKnowledge}
@@ -1091,6 +1144,9 @@ The following conversation contains the agent's questions, corrections, and your
         }
 
         const insightSystem = `
+CURRENT OFFICIAL SKIMS SIZE CHART LOOKUP:
+${await getSkimsSizingGuideReference()}
+
 You are an exceptionally careful internal SKIMS customer support case analyst. Analyze the FULL customer-agent conversation and produce a concise, accurate case insight for the agent.
 
 POLICY REFERENCE:
