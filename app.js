@@ -1,5 +1,6 @@
 
-const API_URL = "http://127.0.0.1:8787";
+const API_URL = "";
+const AUTH_STORAGE_KEY = "skimsSupportAssistant_session_v1";
 const STORAGE_KEY = "skimsSupportAssistant_ticketData_v2";
 
 const ticketArea = document.getElementById("ticketArea");
@@ -892,7 +893,7 @@ function bindCard(card, t) {
         : "empty";
 
       t.importStatus =
-        `${e.message} Make sure the local backend is running.`;
+        `${e.message} Check your sign-in and connection, then try again.`;
 
       status.textContent = t.importStatus;
 
@@ -1185,43 +1186,44 @@ async function generateInsight(t) {
 // API HELPERS
 // =====================================
 
-async function apiGet(path) {
-  const r = await fetch(`${API_URL}${path}`);
-
-  const data = await r.json().catch(() => ({}));
-
-  if (!r.ok) {
-    throw new Error(
-      data.error || "The local import service returned an error."
-    );
-  }
-
-  return data;
+async function getAccessToken() {
+  let token = sessionStorage.getItem(AUTH_STORAGE_KEY);
+  if (token) return token;
+  const password = window.prompt("Enter your SKIMS Support Assistant access password:");
+  if (password === null || !password.trim()) throw new Error("Sign-in is required.");
+  const login = await fetch("/auth/login", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password})});
+  const loginData = await login.json().catch(()=>({}));
+  if (!login.ok || !loginData.token) throw new Error(loginData.error || "Unable to sign in.");
+  token = loginData.token;
+  sessionStorage.setItem(AUTH_STORAGE_KEY, token);
+  return token;
 }
 
+async function authenticatedFetch(url, options = {}, retry = true) {
+  const token = await getAccessToken();
+  const response = await fetch(url, {...options, headers:{...(options.headers||{}),Authorization:"Bearer "+token}});
+  if (response.status === 401 && retry) {
+    sessionStorage.removeItem(AUTH_STORAGE_KEY);
+    return authenticatedFetch(url, options, false);
+  }
+  return response;
+}
+
+async function apiGet(path) {
+  const r = await authenticatedFetch(API_URL + path);
+  const data = await r.json().catch(()=>({}));
+  if (!r.ok) throw new Error(data.error || "The service returned an error.");
+  return data;
+}
 
 async function apiPost(path, body) {
-  const r = await fetch(`${API_URL}${path}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(body)
-  });
-
-  const data = await r.json().catch(() => ({}));
-
-  if (!r.ok) {
-    throw new Error(
-      data.error || "The drafting service returned an error."
-    );
-  }
-
+  const r = await authenticatedFetch(API_URL + path, {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  const data = await r.json().catch(()=>({}));
+  if (!r.ok) throw new Error(data.error || "The drafting service returned an error.");
   return data;
 }
 
 
-// =====================================
 // WAIT FOR KUSTOMER IMPORT
 // =====================================
 
