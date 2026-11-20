@@ -643,80 +643,34 @@ function syncInsightChatSize() {
 
 function applyFloatingWindowLayout(panel, layout) {
   if (!panel || !layout) return;
-  if (Number.isFinite(layout.width)) panel.style.width = `${layout.width}px`;
-  if (Number.isFinite(layout.height)) panel.style.height = `${layout.height}px`;
-  if (Number.isFinite(layout.left) && Number.isFinite(layout.top)) {
-    panel.style.left = `${layout.left}px`;
-    panel.style.top = `${layout.top}px`;
-    panel.style.right = "auto";
-    panel.style.bottom = "auto";
+  if (Number.isFinite(layout.height)) {
+    panel.style.height = `${layout.height}px`;
   }
 }
 
 function setupFloatingWindowInteractions(card, ticket) {
   [
-    { panel: ".insight-popover", head: ".insight-popover-head", key: "insight" },
-    { panel: ".insight-chat-popover", head: ".insight-chat-head", key: "chat" }
-  ].forEach(({ panel: panelSelector, head: headSelector, key }) => {
-    const panel = $(card, panelSelector);
-    const head = $(panel, headSelector);
-    if (!panel || !head || panel.dataset.dragReady) return;
-    panel.dataset.dragReady = "true";
-    head.style.cursor = "grab";
-    head.style.touchAction = "none";
-    let drag = null;
-
-    head.addEventListener("pointerdown", event => {
-      if (event.target.closest("button, input, textarea, a")) return;
-      const rect = panel.getBoundingClientRect();
-      drag = { id: event.pointerId, x: event.clientX, y: event.clientY, left: rect.left, top: rect.top };
-      panel.style.left = `${rect.left}px`;
-      panel.style.top = `${rect.top}px`;
-      panel.style.right = "auto";
-      panel.style.bottom = "auto";
-      head.setPointerCapture(event.pointerId);
-      head.style.cursor = "grabbing";
-      event.preventDefault();
-    });
-
-    head.addEventListener("pointermove", event => {
-      if (!drag || event.pointerId !== drag.id) return;
-      const rect = panel.getBoundingClientRect();
-      const left = Math.max(0, Math.min(innerWidth - rect.width, drag.left + event.clientX - drag.x));
-      const top = Math.max(0, Math.min(innerHeight - 64, drag.top + event.clientY - drag.y));
-      panel.style.left = `${left}px`;
-      panel.style.top = `${top}px`;
-    });
-
-    const finish = event => {
-      if (!drag || event.pointerId !== drag.id) return;
-      drag = null;
-      head.style.cursor = "grab";
-      saveFloatingWindowLayout(panel, ticket, key);
-    };
-    head.addEventListener("pointerup", finish);
-    head.addEventListener("pointercancel", finish);
+    { panel: ".insight-popover", key: "insight" },
+    { panel: ".insight-chat-popover", key: "chat" }
+  ].forEach(({ panel: selector, key }) => {
+    const panel = $(card, selector);
+    if (!panel || panel.dataset.resizeReady) return;
+    panel.dataset.resizeReady = "true";
 
     if ("ResizeObserver" in window) {
+      let lastHeight = 0;
       const observer = new ResizeObserver(() => {
-        if (panel.isConnected && !panel.hidden) saveFloatingWindowLayout(panel, ticket, key);
+        if (!panel.isConnected || panel.hidden) return;
+        const height = Math.round(panel.getBoundingClientRect().height);
+        if (!height || height === lastHeight) return;
+        lastHeight = height;
+        ticket.insightWindowLayout = ticket.insightWindowLayout || {};
+        ticket.insightWindowLayout[key] = { height };
+        saveTicketData();
       });
       observer.observe(panel);
     }
   });
-}
-
-function saveFloatingWindowLayout(panel, ticket, key) {
-  if (!panel || panel.hidden) return;
-  const rect = panel.getBoundingClientRect();
-  ticket.insightWindowLayout = ticket.insightWindowLayout || {};
-  ticket.insightWindowLayout[key] = {
-    width: Math.round(rect.width),
-    height: Math.round(rect.height),
-    left: panel.style.left && panel.style.left !== "auto" ? Math.round(rect.left) : null,
-    top: panel.style.top && panel.style.top !== "auto" ? Math.round(rect.top) : null
-  };
-  saveTicketData();
 }
 
 // CARD EVENT HANDLERS
