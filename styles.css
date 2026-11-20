@@ -2460,3 +2460,27 @@ input:focus {
     height: min(42vh, 360px);
   }
 }
+
+
+/* Case Insight: anchor at the upper-right so vertical
+   resizing extends downward. Leave the chat window as-is. */
+.insight-popover {
+  top: 86px !important;
+  bottom: auto !important;
+  right: var(--floating-edge) !important;
+  transform: none !important;
+}
+
+@media (max-width: 780px) {
+  .insight-popover {
+    top: 72px !important;
+    bottom: auto !important;
+    right: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .insight-popover {
+    right: 9px !important;
+  }
+}
