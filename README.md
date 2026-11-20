@@ -7,33 +7,36 @@ Private standalone SKIMS customer-support drafting workspace.
 - Email, Live Chat, and SMS drafting
 - Grammar correction and response refinement
 - AI conversation insights and insight chat
-- Read-only Kustomer conversation and attachment import through a user-run bookmarklet
+- Read-only Kustomer conversation and attachment import using the existing Kustomer API workflow
 - Groq API calls stay on the server; the API key is never placed in browser code
 
 ## Render deployment
 Create a **new Render Web Service** connected to this repository. Keep the separate Chrome-extension repository/service unchanged.
 
 - Runtime: Node
-- Build command: leave blank
+- Build command: `npm install`
 - Start command: `npm start`
 - Root directory: repository root
 
 Set these Render environment variables:
 - `GROQ_API_KEY`: Groq API key (secret)
-- `GROQ_MODEL`: approved model, such as `openai/gpt-oss-120b`
+- `GROQ_MODEL`: approved model available to your Groq account
 - `APP_ACCESS_PASSWORD`: a strong private password you choose
-- `APP_ORIGIN`: exact deployed origin, e.g. `https://your-service.onrender.com`, without a trailing slash
+- `APP_ORIGIN`: exact deployed origin, e.g. `https://skims-support-assistant-web.onrender.com`, without a trailing slash
 
-The server listens on Render's `PORT`, binds to `0.0.0.0`, and serves both the website and API from the same service.
+The server listens on Render's `PORT`, binds to `0.0.0.0`, and serves both the website and API from this same service.
 
-## Kustomer bookmarklet
-After the new Render service has its final URL:
-1. Replace the placeholder host in `SKIMS-Import-Bookmarklet.txt` with that exact URL.
-2. Add the one-line code as a Chrome bookmark named **SKIMS Import to Ticket**.
-3. In the website, paste a Kustomer conversation URL and choose Import conversation.
-4. In the matching Kustomer tab, click the bookmarklet and wait for the import to finish.
+## Kustomer import bookmark
+The importer reuses the existing Kustomer API workflow and sends data to the hosted Render service (not localhost). It is a browser bookmark, **not a locally installed Chrome extension**.
 
-The bookmarklet uses the authenticated Kustomer page session and a short-lived, single-use import token. It does not send Kustomer cookies or passwords to this app.
+1. Open `SKIMS-Import-Bookmarklet.txt` in this repository.
+2. Copy the entire one-line `javascript:` code.
+3. Create a Chrome bookmark named **SKIMS Import to Ticket** and paste the code into its URL field.
+4. In the SKIMS Support Assistant website, paste the exact Kustomer conversation URL into the selected ticket and click **Import conversation**.
+5. In the Kustomer tab that opens, click **SKIMS Import to Ticket** in your bookmarks bar.
+6. Keep the website open until the import completes.
+
+The bookmark reads messages and attachment metadata through the signed-in Kustomer page session, then posts the normalized conversation to `https://skims-support-assistant-web.onrender.com` using a short-lived, single-use import token. It does not send Kustomer cookies or passwords to this app. The bookmark code is configured for this hosted URL; no local server or localhost address is needed.
 
 ## Security and limitations
 - Never commit `.env`, API keys, passwords, cookies, or customer conversation exports.
