@@ -36,6 +36,7 @@ const tickets = Array.from({ length: 5 }, (_, i) => ({
 }));
 
 let activeId = 1;
+const selectedTicketIds = new Set();
 
 const $ = (root, selector) => root.querySelector(selector);
 const getTicket = id => tickets.find(t => t.id === id);
@@ -132,11 +133,72 @@ function restoreTicketData() {
 
 restoreTicketData();
 
+// Bulk ticket selection and deletion controls.
+document.getElementById("selectAllCheckbox").addEventListener("change", event => {
+  selectedTicketIds.clear();
+  if (event.target.checked) tickets.forEach(t => selectedTicketIds.add(t.id));
+  render();
+});
+
+document.getElementById("deleteSelectedTickets").addEventListener("click", async () => {
+  const ids = [...selectedTicketIds].sort((a, b) => a - b);
+  if (!ids.length) return;
+
+  const ticketNames = ids.map(id => `Ticket ${id}`).join(", ");
+  if (!confirm(`Delete all data in ${ticketNames}? This removes their conversations, notes, drafts, and saved AI discussions.`)) {
+    return;
+  }
+
+  selectedTicketIds.clear();
+  await Promise.all(ids.map(async id => {
+    await cancelTicketImport(id);
+    resetTicketState(getTicket(id));
+  }));
+
+  saveTicketData();
+  render();
+});
+
 
 // =====================================
 // MAIN RENDER
 // PRESERVES PAGE AND CHAT SCROLL
 // =====================================
+
+function resetTicketState(t) {
+  t.insightRequestId++;
+  t.insightChatRequestId++;
+
+  Object.assign(t, {
+    url: "",
+    conversation: [],
+    attachments: [],
+    concern: "",
+    resolution: "",
+    output: "",
+    status: "empty",
+    importStatus: "Paste the URL belonging to this ticket only.",
+    collapsed: false,
+    customerName: "",
+    insight: null,
+    insightChat: [],
+    insightWindowLayout: {},
+    insightOpen: false,
+    insightChatOpen: false,
+    insightUnread: false,
+    insightLoading: false,
+    insightChatLoading: false,
+    insightError: "",
+    insightChatError: "",
+    insightStale: false
+  });
+}
+
+async function cancelTicketImport(ticketId) {
+  try {
+    await apiPost("/import/cancel", { ticketId: String(ticketId) });
+  } catch {}
+}
 
 function render(options = {}) {
   const previousPageX = window.scrollX;
@@ -175,10 +237,38 @@ function render(options = {}) {
   ticketNav.replaceChildren();
   ticketArea.replaceChildren();
 
+  const selectAllLabel = document.getElementById("selectAllTickets");
+  const selectAll = document.getElementById("selectAllCheckbox");
+  const deleteSelected = document.getElementById("deleteSelectedTickets");
+  const selectionCount = document.getElementById("selectionCount");
+  selectAll.checked = selectedTicketIds.size === tickets.length;
+  selectAll.indeterminate = selectedTicketIds.size > 0 &&
+    selectedTicketIds.size < tickets.length;
+  selectionCount.textContent = selectedTicketIds.size
+    ? `${selectedTicketIds.size} selected`
+    : "Select tickets to remove";
+  deleteSelected.disabled = selectedTicketIds.size === 0;
+  selectAllLabel.classList.toggle("has-selection", selectedTicketIds.size > 0);
+
   tickets.forEach(t => {
+    const row = document.createElement("div");
+    row.className = "ticket-nav-row";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.className = "ticket-select-checkbox";
+    checkbox.checked = selectedTicketIds.has(t.id);
+    checkbox.setAttribute("aria-label", `Select Ticket ${t.id} for deletion`);
+    checkbox.addEventListener("change", () => {
+      if (checkbox.checked) selectedTicketIds.add(t.id);
+      else selectedTicketIds.delete(t.id);
+      render();
+    });
+
     const nav = document.createElement("button");
 
     nav.className = t.id === activeId ? "active" : "";
+    nav.classList.toggle("selected-for-delete", selectedTicketIds.has(t.id));
 
     const number = document.createElement("span");
     number.className = "ticket-number-badge";
@@ -212,7 +302,8 @@ function render(options = {}) {
       render();
     });
 
-    ticketNav.append(nav);
+    row.append(checkbox, nav);
+    ticketNav.append(row);
   });
 
   document.getElementById("ticketCount").textContent =
@@ -963,38 +1054,9 @@ function bindCard(card, t) {
       return;
     }
 
-    try {
-      await apiPost("/import/cancel", {
-        ticketId: String(t.id)
-      });
-    } catch {}
-
-    t.insightRequestId++;
-    t.insightChatRequestId++;
-
-    Object.assign(t, {
-      url: "",
-      conversation: [],
-      attachments: [],
-      concern: "",
-      resolution: "",
-      output: "",
-      status: "empty",
-      importStatus:
-        "Paste the URL belonging to this ticket only.",
-      collapsed: false,
-      customerName: "",
-      insight: null,
-      insightChat: [],
-      insightOpen: false,
-      insightChatOpen: false,
-      insightUnread: false,
-      insightLoading: false,
-      insightChatLoading: false,
-      insightError: "",
-      insightChatError: "",
-      insightStale: false
-    });
+    await cancelTicketImport(t.id);
+    resetTicketState(t);
+    selectedTicketIds.delete(t.id);
 
     saveTicketData();
     render();
