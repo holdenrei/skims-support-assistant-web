@@ -37,6 +37,7 @@ const tickets = Array.from({ length: 5 }, (_, i) => ({
 
 let activeId = 1;
 const selectedTicketIds = new Set();
+let ticketSelectionMode = false;
 
 const $ = (root, selector) => root.querySelector(selector);
 const getTicket = id => tickets.find(t => t.id === id);
@@ -134,6 +135,12 @@ function restoreTicketData() {
 restoreTicketData();
 
 // Bulk ticket selection and deletion controls.
+document.getElementById("toggleTicketSelection").addEventListener("click", () => {
+  ticketSelectionMode = !ticketSelectionMode;
+  if (!ticketSelectionMode) selectedTicketIds.clear();
+  render();
+});
+
 document.getElementById("selectAllCheckbox").addEventListener("change", event => {
   selectedTicketIds.clear();
   if (event.target.checked) tickets.forEach(t => selectedTicketIds.add(t.id));
@@ -237,8 +244,13 @@ function render(options = {}) {
   ticketNav.replaceChildren();
   ticketArea.replaceChildren();
 
+  const selectionToggle = document.getElementById("toggleTicketSelection");
+  const selectionControls = document.getElementById("ticketSelectionControls");
   const selectAllLabel = document.getElementById("selectAllTickets");
   const selectAll = document.getElementById("selectAllCheckbox");
+  selectionToggle.textContent = ticketSelectionMode ? "Done" : "Select";
+  selectionToggle.setAttribute("aria-expanded", String(ticketSelectionMode));
+  selectionControls.hidden = !ticketSelectionMode;
   const deleteSelected = document.getElementById("deleteSelectedTickets");
   const selectionCount = document.getElementById("selectionCount");
   selectAll.checked = selectedTicketIds.size === tickets.length;
@@ -258,6 +270,7 @@ function render(options = {}) {
     checkbox.type = "checkbox";
     checkbox.className = "ticket-select-checkbox";
     checkbox.checked = selectedTicketIds.has(t.id);
+    checkbox.hidden = !ticketSelectionMode;
     checkbox.setAttribute("aria-label", `Select Ticket ${t.id} for deletion`);
     checkbox.addEventListener("change", () => {
       if (checkbox.checked) selectedTicketIds.add(t.id);
