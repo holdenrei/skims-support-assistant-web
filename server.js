@@ -1507,7 +1507,7 @@ IMPORTANT GUIDANCE:
 - Always follow the mandatory international order and carrier policies in your system instructions when they apply.
 - Do not insert unrelated policy explanations into cases where they do not apply.
 
-Generate only the selected response format.`;
+Generate only the requested deliverable for the intended audience. The selected format applies to customer-facing responses; explicit internal-team instructions require an internal message.`;
 
       const apiResponse = await callGroqWithRetry(
         prompt,
