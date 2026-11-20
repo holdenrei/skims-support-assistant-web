@@ -1032,6 +1032,64 @@ function bindCard(card, t) {
   // EXISTING DRAFTING FEATURES
   // =====================================
 
+  $(card, ".add-sizing-context").addEventListener("click", () => {
+    const category = $(card, ".sizing-category").value;
+    const product = $(card, ".sizing-product").value.trim();
+    const usual = $(card, ".sizing-usual").value.trim();
+    const unit = $(card, ".sizing-unit").value;
+    const underbust = $(card, ".sizing-underbust").value.trim();
+    const bust = $(card, ".sizing-bust").value.trim();
+    const waist = $(card, ".sizing-waist").value.trim();
+    const hips = $(card, ".sizing-hips").value.trim();
+    const categoryLabel = {
+      bra: "Bra / Bralette",
+      shapewear: "Shapewear",
+      clothing: "Clothing / Loungewear / Swim",
+      bodysuit: "Bodysuit"
+    }[category];
+    if (!product && !usual && !underbust && !bust && !waist && !hips) {
+      $(card, ".sizing-status").textContent = "Enter a product, usual size, or at least one measurement first.";
+      return;
+    }
+    let customBraResult = "";
+    if (category === "bra" && underbust && bust && unit === "in") {
+      const u = Number(underbust), b = Number(bust), rounded = Math.round(u);
+      if (Number.isFinite(u) && Number.isFinite(b) && u > 0 && b >= u && Math.abs(u-rounded) < 0.01) {
+        const band = rounded + (rounded % 2 === 0 ? 2 : 3);
+        const diff = Math.round((b-u)*10)/10;
+        const cups = {1:"A",2:"B",3:"C",4:"D",5:"DD/E",6:"DDD/F",7:"DDDD/G",8:"DDDDD/H"};
+        const cupKey = Math.round(diff);
+        const cup = Math.abs(diff-cupKey)<0.01 ? cups[cupKey] : null;
+        customBraResult = cup ? `\nOriginal internal bra formula result: ${band}${cup} (band ${band}; cup difference ${diff} in).` : `\nOriginal internal bra formula: band ${band}; cup difference ${diff} in does not map cleanly to the supplied chart. Do not state a definitive size.`;
+      } else {
+        customBraResult = "\nOriginal internal bra formula not applied: verify measurements; it requires a whole-number underbust and overbust at least as large as underbust.";
+      }
+    }
+    const lines = [
+      "SIZING / FIT CONTEXT (agent-supplied; use for this customer only):",
+      `Product category: ${categoryLabel}`,
+      product ? `Exact product/style: ${product}` : "",
+      usual ? `Customer's usual size: ${usual}` : "",
+      underbust ? `Underbust: ${underbust} ${unit}` : "",
+      bust ? `Overbust / bust: ${bust} ${unit}` : "",
+      waist ? `Waist: ${waist} ${unit}` : "",
+      hips ? `Hips: ${hips} ${unit}` : "",
+      customBraResult,
+      "Fit guidance: SKIMS generally fits true to size. Start with the customer's usual size; for shapewear and clothing, compare the supplied measurements with the current official SKIMS size guide and the exact product/style chart. Do not automatically size down for compression. If measurements span sizes, a chart is unavailable, or fit varies by style, state the uncertainty and advise checking the product-specific chart. Never invent a size mapping or guarantee fit.",
+      "Official reference: https://www.skims.com/pages/size-guides (shapewear: https://www.skims.com/pages/size-guides-shapewear)"
+    ].filter(Boolean).join("\n");
+    const existing = t.resolution.trim();
+    if (existing.includes("SIZING / FIT CONTEXT (agent-supplied; use for this customer only):")) {
+      t.resolution = existing.replace(/SIZING \/ FIT CONTEXT \(agent-supplied; use for this customer only\):[\s\S]*?(?=\n\n[A-Z][^\n]*:|$)/, lines);
+    } else {
+      t.resolution = existing ? existing + "\n\n" + lines : lines;
+    }
+    $(card, ".confirmed-resolution").value = t.resolution;
+    markInsightStale(t, card);
+    saveTicketData();
+    $(card, ".sizing-status").textContent = "Sizing details added to this ticket's AI notes. Generate AI Insight or a response to use them.";
+  });
+
   $(card, ".generate-btn").addEventListener("click", () => {
     generateDraft(card, t);
   });
