@@ -440,8 +440,22 @@ function getRelevantSkimsPolicyKnowledge(ticketContext = "") {
   ];
   const selected = new Set(["IMPORTANT DISTINCTIONS", "RETURN POLICY DECISION SAFEGUARDS", "CUSTOMER-FACING DRAFTING BOUNDARY"]);
   for (const [pattern, headings] of rules) if (pattern.test(context)) headings.forEach(h => selected.add(h));
-  // Ambiguous tickets retain every policy rather than risk omitting a relevant rule.
-  if (!context.trim() || selected.size === 3) return skimsPolicyKnowledge;
+  // Do not attach the entire knowledge base to an empty or unclassified request.
+  // Keep the universal safeguards, and add topic-specific sections only when the
+  // customer's context identifies them. This avoids exhausting the request budget
+  // before the model can respond; missing eligibility facts must still be verified.
+  if (!context.trim() || selected.size === 3) {
+    selected.add("CUSTOMER-FACING DRAFTING BOUNDARY");
+    return sections
+      .filter(section =>
+        section.heading === "__INTRO__" ||
+        section.heading === "IMPORTANT DISTINCTIONS" ||
+        section.heading === "RETURN POLICY DECISION SAFEGUARDS" ||
+        section.heading === "CUSTOMER-FACING DRAFTING BOUNDARY"
+      )
+      .map(section => section.lines.join("\n"))
+      .join("\n\n");
+  }
   return sections.filter(section => section.heading === "__INTRO__" || selected.has(section.heading)).map(section => section.lines.join("\n")).join("\n\n");
 }
 
