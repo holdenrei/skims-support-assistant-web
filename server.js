@@ -558,6 +558,22 @@ function getSafeCompletionTokenLimit(systemText, promptText, requestedLimit) {
   // draft. If the prompt itself consumes nearly all of the TPM budget, explain
   // that constraint instead of silently allowing reasoning to consume the reply.
   if (availableCompletionTokens < 512) {
+    // Diagnostic only: record prompt sizes without logging customer content or
+    // policy text, so we can identify whether fixed instructions or ticket text
+    // are consuming the request budget.
+    console.error(
+      "Draft request blocked by local token guard:",
+      JSON.stringify({
+        systemCharacters: String(systemText || "").length,
+        userPromptCharacters: String(promptText || "").length,
+        totalCharacters: inputCharacters,
+        estimatedInputTokens,
+        safeRequestBudget,
+        safetyMargin,
+        availableCompletionTokens
+      })
+    );
+
     throw new Error(
       "This conversation and its required policy context exceed the current AI request budget. Please remove unrelated conversation history and try again. Your SKIMS policy instructions have not been removed."
     );
