@@ -1509,11 +1509,11 @@ Do NOT return recommendedNextStep or missingInformation. Do not create a separat
         const insightPrompt = `
 CUSTOMER CONVERSATION AND CONTEXT:
 
-${customerContext}
+${analysisConversation}
 
 AGENT NOTES / CONFIRMED FINDINGS:
 
-${agentNotes || "No agent-confirme${analysisConversation}en provided yet."}
+${agentNotes || "No agent-confirmed findings have been provided yet."}
 
 Analyze the case using only the supplied information.
 
