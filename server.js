@@ -1324,14 +1324,18 @@ The following conversation contains the agent's questions, corrections, and your
           );
         }
 
-        const insightSystem = `
-CURRENT OFFICIAL SKIMS SIZE CHART LOOKUP:
-${await getSkimsSizingGuideReference()}
+        const insightContext = customerContext + "\\n" + agentNotes;
+        const sizingCase = /sizing|size guide|size chart|size recommendation|what size|between sizes|runs small|runs large|true to size|bra|cup size|band size|underbust|overbust|compression/i.test(insightContext);
+        const insightPolicyReference = getRelevantSkimsPolicyKnowledge(insightContext);
+        const insightSizingReference = sizingCase
+          ? "\\n\\nCURRENT OFFICIAL SKIMS SIZE CHART LOOKUP:\\n" + await getSkimsSizingGuideReference()
+          : "";
 
+        const insightSystem = `
 You are an exceptionally careful internal SKIMS customer support case analyst. Analyze the FULL customer-agent conversation and produce a concise, accurate case insight for the agent.
 
-POLICY REFERENCE:
-${skimsPolicyKnowledge}
+RELEVANT POLICY REFERENCE:
+${insightPolicyReference}${insightSizingReference}
 
 ANALYSIS METHOD:
 1. Read all messages chronologically, from the beginning through the latest message. Do not base the analysis only on the opening message or the final message in isolation.
