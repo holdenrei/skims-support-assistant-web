@@ -487,6 +487,10 @@ function buildDraftSystemPrompt(mode, ticketContext = "") {
     "Treat the AGENT INSTRUCTIONS / CONFIRMED FINDINGS / PREFERRED RESPONSE section as the primary direction for the task and resolution. Follow the agent's requests about what to include or exclude, phrases, tone, length, and intended handling, provided they do not conflict with confirmed facts or mandatory SKIMS policy.",
     "",
     "QUALITY REQUIREMENTS:",
+    "GROUNDING PRIORITY (CRITICAL):",
+    "Treat the customer conversation as evidence of what the customer said, not proof that a product specification or operational action is verified. Use product measurements/specifications only when explicitly supplied by the agent or a reliable product reference included in the inputs. Never calculate or estimate garment dimensions or predict where a garment will fall on a person's body from height alone.",
+    "For order edits, cancellations, or size changes, do not say the change can or will be made unless the agent explicitly confirms eligibility and the order status supports it. Otherwise say the order status must be checked first; never imply you have access to the order system or can perform the change.",
+    "Before returning the draft, silently verify every measurement, product specification, fit claim, approval, completed action, and operational promise against the supplied facts. Remove unsupported claims. If the missing fact is essential, ask the customer/agent for verification instead of guessing.",
     "13. Use clean plain text by default. Do not use Markdown, bold asterisks, bullet symbols, decorative characters, unnecessary parentheses, or unusual spacing unless explicitly requested or genuinely needed.",
     "14. Use natural punctuation and readable paragraphs. Do not add formatting merely to make the response look structured.",
     "15. Never invent garment measurements, size-to-length differences, fit guarantees, or product specifications. Use exact measurements only when they appear in the supplied product information or agent-confirmed facts. If exact measurements are unavailable, say so plainly and avoid estimating them as facts.",
@@ -569,6 +573,44 @@ function getSafeCompletionTokenLimit(systemText, promptText, requestedLimit) {
   );
 
   return boundedCompletionTokens;
+}
+
+// Deterministic, zero-extra-token checks for high-risk unsupported claims.
+// These checks run locally after generation; they do not make another Groq request.
+function validateDraftGrounding(draft, customerContext, confirmedResolution, sizingGuidance) {
+  const source = [
+    customerContext || "",
+    confirmedResolution || "",
+    sizingGuidance || ""
+  ].join("\n").toLowerCase();
+
+  const measurementPattern = /\b\d+(?:\.\d+)?\s?(?:cm|mm|inches|inch)\b/gi;
+  const measurements = String(draft || "").match(measurementPattern) || [];
+  const unsupportedMeasurements = measurements.filter(value => {
+    const normalized = value.replace(/\s+/g, "").toLowerCase();
+    return !source.replace(/\s+/g, "").includes(normalized);
+  });
+
+  if (unsupportedMeasurements.length) {
+    return {
+      ok: false,
+      reason: "The generated draft included product measurements that were not present in the supplied customer context, agent notes, or sizing guidance."
+    };
+  }
+
+  const modificationPromisePattern =
+    /\b(?:we can|i can|we will|we'll|i will|i'll)\s+(?:update|change|modify|switch|cancel)\b[^.!?]{0,100}\b(?:order|size|item|purchase)\b/i;
+
+  const confirmedModification = /\b(?:unfulfilled|not shipped|has not shipped|haven't shipped|hasn't shipped|modification approved|approved (?:the )?(?:order )?(?:change|edit|modification)|eligible for (?:an? )?(?:order )?(?:change|edit|modification)|confirmed (?:the )?(?:order )?(?:change|edit|modification)|order (?:can|may) be modified)\b/i.test(confirmedResolution || "");
+
+  if (modificationPromisePattern.test(draft) && !confirmedModification) {
+    return {
+      ok: false,
+      reason: "The generated draft appears to promise an order modification without explicit confirmation of eligibility and order status in the agent's confirmed findings."
+    };
+  }
+
+  return { ok: true };
 }
 
 // =====================================
@@ -1654,6 +1696,22 @@ Generate only the requested deliverable for the intended audience. The selected 
         typeof choice?.message?.content === "string"
           ? choice.message.content.trim()
           : "";
+
+      const groundingCheck = validateDraftGrounding(
+        email,
+        customerContext,
+        confirmedResolution,
+        sizingGuidance
+      );
+
+      if (!groundingCheck.ok) {
+        console.warn("Draft blocked by local grounding check:", groundingCheck.reason);
+        throw new Error(
+          "Draft blocked by a factual-safety check: " +
+          groundingCheck.reason +
+          " Please verify the missing information in the agent instructions and generate again."
+        );
+      }
 
       if (!email) {
         console.error(
