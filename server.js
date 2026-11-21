@@ -1324,11 +1324,11 @@ The following conversation contains the agent's questions, corrections, and your
           );
         }
 
-        const insightContext = customerContext + "\\n" + agentNotes;
+        const insightContext = customerContext + "\n" + agentNotes;
         const sizingCase = /sizing|size guide|size chart|size recommendation|what size|between sizes|runs small|runs large|true to size|bra|cup size|band size|underbust|overbust|compression/i.test(insightContext);
         const insightPolicyReference = getRelevantSkimsPolicyKnowledge(insightContext);
         const insightSizingReference = sizingCase
-          ? "\\n\\nCURRENT OFFICIAL SKIMS SIZE CHART LOOKUP:\\n" + await getSkimsSizingGuideReference()
+          ? "\n\nCURRENT OFFICIAL SKIMS SIZE CHART LOOKUP:\n" + await getSkimsSizingGuideReference()
           : "";
 
         const insightSystem = `
