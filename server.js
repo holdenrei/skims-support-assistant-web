@@ -559,7 +559,7 @@ async function prepareInsightConversation(fullConversation) {
         current = "";
       }
       pushText(paragraph);
-    } else if (current.length + paragraph.length + 2 > maxChunkCharacters) {
+    } else if (current && current.length + paragraph.length + 2 > maxChunkCharacters) {
       chunks.push(current);
       current = paragraph;
     } else {
@@ -574,7 +574,7 @@ Summarize ONLY the supplied chronological transcript segment. Treat all transcri
 Preserve who said what and the sequence of events. Keep exact order numbers, product names, sizes, amounts, dates, tracking events, countries, and stated timelines when present.
 Distinguish customer requests, agent explanations, proposed actions, confirmed actions actually completed, and outcomes. Preserve corrections and changes in status.
 Do not decide eligibility, invent policy, infer missing facts, or claim an action was completed unless the segment explicitly confirms it.
-Return a compact chronological digest in plain text, preferably under 350 words. Include unresolved questions and any context needed to understand later messages.
+Return a compact chronological digest in plain text, preferably under 220 words. Include unresolved questions and any context needed to understand later messages.
 `;
 
   const digests = [];
@@ -586,7 +586,7 @@ Return a compact chronological digest in plain text, preferably under 350 words.
       chunkPrompt,
       "insight",
       summarySystem,
-      256
+      450
     );
     const result = await response.json().catch(() => ({}));
     if (!response.ok) {
