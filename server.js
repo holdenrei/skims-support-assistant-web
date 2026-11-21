@@ -599,7 +599,7 @@ function validateDraftGrounding(draft, customerContext, confirmedResolution, siz
   }
 
   const modificationPromisePattern =
-    /\b(?:we can|i can|we will|we'll|i will|i'll)\s+(?:update|change|modify|switch|cancel)\b[^.!?]{0,100}\b(?:order|size|item|purchase)\b/i;
+    /\b(?:we can|i can|we will|we'll|i will|i'll)\s+(?:(?:update|change|modify|switch|cancel)\b[^.!?]{0,100}\b(?:order|size|item|purchase)\b|make (?:that|the|this) (?:order )?(?:change|edit|modification)\b)/i;
 
   const confirmedModification = /\b(?:unfulfilled|not shipped|has not shipped|haven't shipped|hasn't shipped|modification approved|approved (?:the )?(?:order )?(?:change|edit|modification)|eligible for (?:an? )?(?:order )?(?:change|edit|modification)|confirmed (?:the )?(?:order )?(?:change|edit|modification)|order (?:can|may) be modified)\b/i.test(confirmedResolution || "");
 
