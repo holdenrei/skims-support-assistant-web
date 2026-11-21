@@ -517,7 +517,7 @@ async function getGroqRetryDelay(response, fallbackMs) {
 
 // Keep Groq requests below the shared on-demand TPM ceiling.
 // The estimate includes a safety margin for message framing and tokenizer variance.
-function getSafeCompletionTokenLimit(systemText, promptText, requestedLimit) {
+function getSafeCompletionTokenLimit(systemText, promptText, requestedLimit, minimumCompletionTokens = 512) {
   // The previous character-based estimate was calibrated too conservatively:
   // Render logs showed 8,794 estimated input tokens versus 6,129 actual tokens.
   // Use a more realistic English-prompt ratio while retaining framing and TPM
@@ -535,7 +535,7 @@ function getSafeCompletionTokenLimit(systemText, promptText, requestedLimit) {
   // Never send a request with a token allowance too small to produce a useful
   // draft. If the prompt itself consumes nearly all of the TPM budget, explain
   // that constraint instead of silently allowing reasoning to consume the reply.
-  if (availableCompletionTokens < 512) {
+  if (availableCompletionTokens < minimumCompletionTokens) {
     // Diagnostic only: record prompt sizes without logging customer content or
     // policy text, so we can identify whether fixed instructions or ticket text
     // are consuming the request budget.
@@ -614,14 +614,16 @@ function validateDraftGrounding(draft, customerContext, confirmedResolution, siz
 async function callGroqWithRetry(
   prompt,
   mode = "email",
-  systemInstruction = null
+  systemInstruction = null,
+  minimumCompletionTokens = 512
 ) {
   const delays = [1500, 3000, 10000];
   const systemText = systemInstruction || buildDraftSystemPrompt(mode, prompt);
   const completionTokenLimit = getSafeCompletionTokenLimit(
     systemText,
     prompt,
-    1024
+    mode === "insight" ? 700 : 1024,
+    minimumCompletionTokens
   );
 
   for (let attempt = 0; attempt <= delays.length; attempt++) {
@@ -1375,7 +1377,8 @@ If the agent has not provided a confirmed resolution, recommend what should be c
         const apiResponse = await callGroqWithRetry(
           insightPrompt,
           "insight",
-          insightSystem
+          insightSystem,
+          256
         );
 
         const result = await apiResponse.json().catch(() => ({}));
