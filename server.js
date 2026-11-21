@@ -459,6 +459,70 @@ function getRelevantSkimsPolicyKnowledge(ticketContext = "") {
   return sections.filter(section => section.heading === "__INTRO__" || selected.has(section.heading)).map(section => section.lines.join("\n")).join("\n\n");
 }
 
+
+// Compact policy selector for AI Insight. Drafting retains the full policy library.
+function getInsightPolicyKnowledge(ticketContext = "") {
+  const context = String(ticketContext || "").toLowerCase();
+  const lines = skimsPolicyKnowledge.trim().split("\n");
+  const headingPattern = /^[A-Z][A-Z0-9 —()&/$,.-]{4,}:?$/;
+  const sections = [];
+  let current = { heading: "__INTRO__", lines: [] };
+
+  for (const line of lines) {
+    const heading = line.trim();
+    if (headingPattern.test(heading)) {
+      sections.push(current);
+      current = { heading: heading.replace(/:$/, ""), lines: [line] };
+    } else current.lines.push(line);
+  }
+  sections.push(current);
+
+  const selected = new Set([
+    "IMPORTANT DISTINCTIONS",
+    "RETURN POLICY DECISION SAFEGUARDS",
+    "CUSTOMER-FACING DRAFTING BOUNDARY"
+  ]);
+  const has = pattern => pattern.test(context);
+
+  if (has(/sizing|size guide|size chart|size recommendation|what size|between sizes|runs small|runs large|true to size|bra|cup size|band size|underbust|overbust|compression/)) selected.add("SIZING AND FIT GUIDANCE");
+  if (has(/missing item|item missing|not in (?:the )?package|missing product/)) {
+    selected.add("MISSING ITEM — DOMESTIC (US)");
+    selected.add("MISSING ITEM — INTERNATIONAL");
+  }
+  if (has(/wrong item|incorrect item|received .* instead|different item|wrong product/)) {
+    selected.add("WRONG ITEM — DOMESTIC (US)");
+    selected.add("WRONG ITEM — INTERNATIONAL");
+  }
+  if (has(/marked delivered|delivered but|not received|lost package|porch|delivery dispute/)) selected.add("LOST PACKAGE — INTERNATIONAL (DELIVERED BUT CUSTOMER SAYS NOT RECEIVED)");
+  if (has(/lost in transit|\blit\b|no tracking update|stuck in transit|last scan/)) selected.add("LOST IN TRANSIT (LIT)");
+  if (has(/dead tracking|label created|never scanned|no carrier scan/)) selected.add("DEAD TRACKING (DT)");
+  if (has(/return to sender|returned to sender|\brts\b/)) selected.add("RETURNED TO SENDER (RTS)");
+
+  if (has(/return|refund|rma|return label|return status|warehouse|global-e|global e|happy returns|mail-in|drop.?off|inspection|crick|grobbendonk|poland/)) {
+    selected.add("GENERAL RETURN POLICY");
+    selected.add("RETURN STATUS AND REFUND INQUIRIES");
+    if (has(/international|global-e|global e|germany|france|uk\b|united kingdom|europe|eu\b|gcc|poland|crick|grobbendonk/)) {
+      selected.add("GENERAL INTERNATIONAL RETURN POLICY");
+      selected.add("INTERNATIONAL RETURN STATUS — REQUIRED INITIAL CHECKS");
+      if (has(/uk\b|united kingdom|europe|eu\b|poland|crick|grobbendonk/)) {
+        selected.add("GCC AND UK/EU ORDERS UNDER $100 — REFUND HANDLING");
+        selected.add("UK/EU ORDERS $100 OR MORE — INSPECTION REQUIRED");
+      }
+    } else selected.add("RETURNS AND REFUNDS — DOMESTIC (US)");
+  }
+
+  const selectedText = sections
+    .filter(section => section.heading === "__INTRO__" || selected.has(section.heading))
+    .map(section => section.lines.join("\n"))
+    .join("\n\n");
+
+  const carrierCase = has(/carrier|tracking|shipped|in transit|delivery|delivered|shipment|fedex|ups|usps|dhl/);
+  const internationalCase = has(/international|global-e|global e|germany|france|uk\b|united kingdom|europe|eu\b|gcc|poland/);
+  return selectedText
+    + (carrierCase ? "\n\nMANDATORY CARRIER SAFEGUARDS:\nSKIMS Support cannot contact the carrier on the customer's behalf. When the package has tracking or has been handed to the carrier, direct delivery-related questions to the carrier. Never promise carrier follow-up or an unconfirmed delivery outcome." : "")
+    + (internationalCase ? "\n\nMANDATORY INTERNATIONAL RESHIPMENT SAFEGUARD:\nDo not offer, approve, or promise reshipments for international orders." : "");
+}
+
 // =====================================
 // RESPONSE SYSTEM PROMPT
 // =====================================
@@ -1324,18 +1388,16 @@ The following conversation contains the agent's questions, corrections, and your
           );
         }
 
-        const insightContext = customerContext + "\n" + agentNotes;
-        const sizingCase = /sizing|size guide|size chart|size recommendation|what size|between sizes|runs small|runs large|true to size|bra|cup size|band size|underbust|overbust|compression/i.test(insightContext);
-        const insightPolicyReference = getRelevantSkimsPolicyKnowledge(insightContext);
-        const insightSizingReference = sizingCase
-          ? "\n\nCURRENT OFFICIAL SKIMS SIZE CHART LOOKUP:\n" + await getSkimsSizingGuideReference()
-          : "";
+        // Keep the full transcript for analysis, but select policy using the
+        // recent case context so resolved historical topics do not load every SOP.
+        const insightPolicyContext = customerContext.slice(-14000) + "\n" + agentNotes;
+        const insightPolicyReference = getInsightPolicyKnowledge(insightPolicyContext);
 
         const insightSystem = `
-You are an exceptionally careful internal SKIMS customer support case analyst. Analyze the FULL customer-agent conversation and produce a concise, accurate case insight for the agent.
+You are a careful internal SKIMS customer support case analyst. Analyze the full customer-agent conversation and produce a concise, accurate case insight.
 
 RELEVANT POLICY REFERENCE:
-${insightPolicyReference}${insightSizingReference}
+${insightPolicyReference}
 
 ANALYSIS METHOD:
 1. Read all messages chronologically, from the beginning through the latest message. Do not base the analysis only on the opening message or the final message in isolation.
