@@ -429,7 +429,7 @@ function getRelevantSkimsPolicyKnowledge(ticketContext = "") {
   }
   sections.push(current);
   const rules = [
-    [/sizing|size guide|bra|cup size|band size|underbust|overbust|fit|compression/, ["SIZING AND FIT GUIDANCE"]],
+    [/sizing|size guide|size chart|size recommendation|what size|between sizes|runs small|runs large|true to size|bra|cup size|band size|underbust|overbust|compression/, ["SIZING AND FIT GUIDANCE"]],
     [/missing item|item missing|not in (?:the )?package|missing product/, ["MISSING ITEM — DOMESTIC (US)", "MISSING ITEM — INTERNATIONAL"]],
     [/wrong item|incorrect item|received .* instead|different item|wrong product/, ["WRONG ITEM — DOMESTIC (US)", "WRONG ITEM — INTERNATIONAL"]],
     [/delivered|not received|marked delivered|lost package|porch|delivery dispute/, ["LOST PACKAGE — INTERNATIONAL (DELIVERED BUT CUSTOMER SAYS NOT RECEIVED)"]],
