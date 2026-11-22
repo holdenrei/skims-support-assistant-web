@@ -132,7 +132,7 @@ const instructions = [
   "- Use clean, simple, professional plain text by default across Email, SMS, and Live Chat.",
   "- Do not use Markdown formatting unless the agent explicitly requests it or the task genuinely requires it.",
   "- Do not add asterisks for bold or italics, bullet symbols, numbered lists, decorative symbols, repeated punctuation, unnecessary parentheses, or unusual Unicode spacing/characters.",
-  "- Avoid characters such as *, _, #, |, and decorative dashes when they are only being used for styling. Use parentheses only when they clarify necessary information.",
+  "- Use ASCII characters only; avoid curly quotes, Unicode dashes, nonbreaking spaces, bullets, and decorative symbols. Keep necessary hyphens in names and IDs.",
   "- Use ordinary punctuation naturally. Do not remove necessary punctuation from order numbers, product names, measurements, URLs, or other supplied information.",
   "- Prefer short, readable paragraphs with normal line breaks. Use a list only when the agent asks for one or the information is genuinely clearer as a list.",
   "- Do not wrap product names, sizes, amounts, or other details in decorative formatting. Keep the message visually clean and easy to copy into the support platform.",
