@@ -1192,6 +1192,7 @@ async function sendInsightMessage(t, input) {
     const data = await apiPost("/insight-chat", {
       customerContext: t.concern,
       agentNotes: t.resolution,
+      caseInsight: t.insight,
       messages
     });
 
