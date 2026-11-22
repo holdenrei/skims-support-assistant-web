@@ -1298,10 +1298,10 @@ const server = http.createServer(async (req, res) => {
 
         const agentNotes = String(
           body.agentNotes || ""
-        ).slice(0, 10000);
+        ).slice(0, 5000);
 
         const messages = Array.isArray(body.messages)
-          ? body.messages.slice(-20)
+          ? body.messages.slice(-10)
           : [];
 
         if (!customerContext.trim()) {
@@ -1325,7 +1325,7 @@ const server = http.createServer(async (req, res) => {
           }
 
           const content = String(message.content || "")
-            .slice(0, 3000)
+            .slice(0, 1500)
             .trim();
 
           if (content) {
@@ -1349,7 +1349,7 @@ const server = http.createServer(async (req, res) => {
         const relevantPolicyReference = getInsightPolicyKnowledge(policyContext);
         const sizingRelated = /sizing|size chart|size guide|bra|underbust|overbust|cup size|band size|compression|fit recommendation/i.test(policyContext);
         const sizingReference = sizingRelated
-          ? (await getSkimsSizingGuideReference()).slice(0, 7000)
+          ? (await getSkimsSizingGuideReference()).slice(0, 4500)
           : "Not needed for this case. Do not introduce sizing guidance unless the agent asks.";
 
         const caseInsight = body.caseInsight && typeof body.caseInsight === "object"
@@ -1427,7 +1427,7 @@ ${caseInsight
 
 RECENT ORIGINAL CUSTOMER CASE RECORD (latest portion):
 
-${customerContext.slice(-14000)}
+${customerContext.slice(-9000)}
 
 AGENT NOTES / CONFIRMED FINDINGS:
 
