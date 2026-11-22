@@ -610,12 +610,18 @@ ${digests.join("\n\n")}`;
 // =====================================
 
 function buildDraftSystemPrompt(mode, ticketContext = "") {
+  // Drafting receives the same compact, topic-aware policy selection as Insight.
+  // Use the latest case context so resolved historical topics do not load every SOP.
+  // Mandatory carrier and international safeguards are appended by this selector
+  // when relevant, while the core writing instructions retain the global rules.
+  const relevantDraftPolicy = getInsightPolicyKnowledge(
+    String(ticketContext || "").slice(-14000)
+  );
+
   return [
     instructions,
     "",
-    carrierPolicyInstructions,
-    "",
-    getRelevantSkimsPolicyKnowledge(ticketContext),
+    relevantDraftPolicy,
     "",
     "TASK INTERPRETATION AND EXAMPLE CALIBRATION:",
     "First determine the intended audience and requested deliverable from the agent's actual instruction. The selected channel controls formatting only when the requested output is customer-facing; an explicit internal-team request overrides customer-facing formatting.",
