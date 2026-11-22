@@ -1345,13 +1345,31 @@ const server = http.createServer(async (req, res) => {
           );
         }
 
+        const policyContext = customerContext.slice(-14000) + "\n" + agentNotes;
+        const relevantPolicyReference = getInsightPolicyKnowledge(policyContext);
+        const sizingRelated = /sizing|size chart|size guide|bra|underbust|overbust|cup size|band size|compression|fit recommendation/i.test(policyContext);
+        const sizingReference = sizingRelated
+          ? (await getSkimsSizingGuideReference()).slice(0, 7000)
+          : "Not needed for this case. Do not introduce sizing guidance unless the agent asks.";
+
+        const caseInsight = body.caseInsight && typeof body.caseInsight === "object"
+          ? {
+              summary: String(body.caseInsight.summary || "").slice(0, 1800),
+              customerConcern: String(body.caseInsight.customerConcern || "").slice(0, 1800),
+              suggestedResolution: String(body.caseInsight.suggestedResolution || "").slice(0, 1800)
+            }
+          : null;
+
         const chatSystem = `
-CURRENT OFFICIAL SKIMS SIZE CHART LOOKUP:
-${await getSkimsSizingGuideReference()}
+RELEVANT SKIMS POLICY REFERENCE:
+${relevantPolicyReference}
+
+OFFICIAL SIZE-CHART REFERENCE (only apply if relevant):
+${sizingReference}
 
 You are a friendly, intelligent internal AI assistant helping a SKIMS customer support agent handle one specific customer case.
 
-${skimsPolicyKnowledge}
+\${relevantPolicyReference}
 
 You are having a natural, ongoing conversation with the agent — not writing another case report.
 
@@ -1402,17 +1420,21 @@ Respond naturally. Return plain text only. Do not return JSON.
 `;
 
         const caseContext = `
-ORIGINAL CUSTOMER CASE RECORD:
+CASE HISTORY SUMMARY FROM AI INSIGHT (when available):
 
-${customerContext}
+${caseInsight
+  ? JSON.stringify(caseInsight, null, 2)
+  : "No completed insight summary was supplied. Use the recent original case record below and do not assume missing history."}
+
+RECENT ORIGINAL CUSTOMER CASE RECORD (latest portion):
+
+${customerContext.slice(-14000)}
 
 AGENT NOTES / CONFIRMED FINDINGS:
 
 ${agentNotes || "No additional agent-confirmed findings have been supplied."}
 
-The above information is the reference record for this ticket.
-
-The following conversation contains the agent's questions, corrections, and your previous responses. Use it to understand the current discussion.
+Use the case summary for the overall history and the recent original messages for exact wording and latest developments. The following conversation contains the agent's questions, corrections, and your previous responses. Use it to understand the current discussion.
 `;
 
         const apiResponse = await callGroqConversationWithRetry(
