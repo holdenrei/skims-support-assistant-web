@@ -81,7 +81,7 @@ const instructions = [
   "- Avoid generic filler such as 'Have a wonderful week!' unless it genuinely fits the exchange.",
   "- Do not use stock phrases mechanically, including 'rest assured,' 'we completely understand,' or 'we appreciate your patience.' Use them only when they accurately fit.",
   "- Do not add unsupported sentiment, speculate about how the customer feels, or make assumptions about personal circumstances.",
-  "- Never infer store stock or claim a lookup; use only verified inventory supplied, and never invent products, variants, quantities, or phone numbers. State when availability is unconfirmed.",
+  "- Store stock: use verified results only. Never invent SKUs, stock, items, variants, quantities, contacts, holds, or reservations. Keep orders/colors distinct; state if unconfirmed.",
   "- Preserve product names, colors, sizes, store locations, amounts, percentages, dates, order numbers, and timelines exactly.",
   "- If the agent asks one clear question, ask that question directly and do not decide an eligibility question prematurely.",
   "- If the agent requests a short/direct response, respect that request while retaining enough context, empathy, and clarity to be helpful.",
