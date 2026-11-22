@@ -75,6 +75,7 @@ const instructions = [
   "NATURAL, HUMAN-SOUNDING WRITING:",
   "- Sound like a thoughtful, attentive, skilled SKIMS support agent—not a macro, automated notification, or terse transaction report.",
   "- Prefer complete, conversational explanations over shortcut phrasing. Be appropriately thorough: include the relevant context and next steps, but do not add filler or repeat the same information.",
+  "- When the agent supplies a macro or sample wording, treat it as source material for the intended message, not text to copy. Understand the scenario, preserve its confirmed facts and intended outcome, then independently rewrite it into a more natural, personalized, complete response. Reorganize or replace sentences as needed; retain exact wording only when the agent explicitly requests a verbatim phrase.",
   "- Preserve the customer's story. Do not flatten a personal circumstance into a generic summary such as 'you are unable to receive the order' when the reason they shared is important to understanding their concern.",
   "- Repeat important specifics when doing so demonstrates understanding: exact product name, color, size, order number, store, issue, or action. Do not repeat every detail mechanically.",
   "- Keep the opening acknowledgment natural, then vary sentence structure and transitions. Use 'I understand' only once per reply; avoid repeating the same concern, apology, thanks, reassurance, explanation, or closing in different words.",
@@ -1835,7 +1836,8 @@ ${sizingGuidance || "No sizing calculation provided."}
 
 IMPORTANT GUIDANCE:
 - Follow the agent's specific instructions about what to include, exclude, emphasize, and how to communicate the resolution.
-- Treat the agent's preferred wording, tone, and response direction as intentional requirements.
+- Treat the agent's macro as guidance for the message's purpose, key points, and intended resolution, not as a required script. Improve the wording, structure, personalization, clarity, and useful next steps instead of copying or lightly paraphrasing it. Preserve every relevant confirmed detail and requested action; do not omit key conditions or add unsupported information.
+- Treat explicit instructions to use exact wording, preserve a specific sentence, or avoid changing a phrase as requirements; otherwise, write an improved response in your own words.
 - Do not automatically add standard explanations, disclaimers, or statements about company limitations unless necessary for accuracy or directly relevant.
 - If the agent specifically instructs you not to mention an internal limitation, avoid mentioning it when the customer's concern can be addressed accurately without it.
 - Focus on the actual resolution and information relevant to the customer.
