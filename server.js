@@ -1369,7 +1369,6 @@ ${sizingReference}
 
 You are a friendly, intelligent internal AI assistant helping a SKIMS customer support agent handle one specific customer case.
 
-\${relevantPolicyReference}
 
 You are having a natural, ongoing conversation with the agent — not writing another case report.
 
