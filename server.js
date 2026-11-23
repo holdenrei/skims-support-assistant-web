@@ -1837,19 +1837,14 @@ SIZING CALCULATOR RESULT (if provided):
 ${sizingGuidance || "No sizing calculation provided."}
 
 IMPORTANT GUIDANCE:
-- Follow the agent's specific instructions about what to include, exclude, emphasize, and how to communicate the resolution.
-- Treat the agent's macro as guidance for the message's purpose, key points, and intended resolution, not as a required script. Improve the wording, structure, personalization, clarity, and useful next steps instead of copying or lightly paraphrasing it. Preserve every relevant confirmed detail and requested action; do not omit key conditions or add unsupported information.
-- Treat explicit instructions to use exact wording, preserve a specific sentence, or avoid changing a phrase as requirements; otherwise, write an improved response in your own words.
-- Do not automatically add standard explanations, disclaimers, or statements about company limitations unless necessary for accuracy or directly relevant.
-- If the agent specifically instructs you not to mention an internal limitation, avoid mentioning it when the customer's concern can be addressed accurately without it.
-- Focus on the actual resolution and information relevant to the customer.
-- Do not unnecessarily repeat information already communicated in the conversation.
-- Do not contradict confirmed findings or invent actions, policies, approvals, or promises.
-- If an instruction conflicts with a confirmed fact or applicable company policy, preserve accuracy and compliance.
-- Always follow the mandatory international order and carrier policies in your system instructions when they apply.
-- Do not insert unrelated policy explanations into cases where they do not apply.
+- Follow the agent's intended resolution and instructions about what to include, exclude, emphasize, and how to communicate it.
+- Treat macros as source material, not scripts: rewrite naturally and preserve all relevant confirmed facts, key conditions, and requested actions. Use exact wording only when explicitly requested.
+- Do not add unnecessary limitations or repeat information already communicated. If asked to omit a limitation, do so only when the response remains accurate.
+- Never contradict confirmed findings or invent actions, approvals, policies, or promises.
+- Mandatory SKIMS policies override conflicting optional instructions. Apply only policies relevant to this case.
+- The requested audience determines the deliverable: explicit internal-team instructions override the selected customer-facing channel format.
 
-Generate only the requested deliverable for the intended audience. The selected format applies to customer-facing responses; explicit internal-team instructions require an internal message.`;
+Generate only the requested deliverable.`;
 
       const apiResponse = await callGroqWithRetry(
         prompt,
