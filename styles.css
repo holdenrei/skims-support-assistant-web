@@ -2982,3 +2982,205 @@ input:focus {
 .draft-section {
   display: none !important;
 }
+
+
+/* =========================================
+   NIGHT MODE
+========================================= */
+.theme-toggle {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: background .2s ease, border-color .2s ease, transform .2s ease;
+}
+.theme-toggle:hover {
+  background: var(--rose);
+  transform: translateY(-1px);
+}
+.theme-toggle-icon {
+  display: block;
+  font-size: 19px;
+  line-height: 1;
+}
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #171517;
+  --surface: #211e21;
+  --surface-soft: #282326;
+  --rose: #382d32;
+  --rose-dark: #49383e;
+  --rose-hover: #43343a;
+  --text: #eee7e9;
+  --muted: #b3a5aa;
+  --muted-light: #897d82;
+  --accent: #c18e98;
+  --accent-dark: #d4aab1;
+  --gold: #d2ad7e;
+  --border: #3c3338;
+  --shadow: 0 8px 28px rgba(0, 0, 0, .24);
+}
+html[data-theme="dark"],
+html[data-theme="dark"] body {
+  background: var(--bg);
+  color: var(--text);
+}
+html[data-theme="dark"] .topbar,
+html[data-theme="dark"] .tabs {
+  background: #201c20;
+  border-color: var(--border);
+}
+html[data-theme="dark"] .wordmark { color: #eadde1; }
+html[data-theme="dark"] .privacy-pill {
+  background: #252a25;
+  border-color: #3b493c;
+  color: #b5c7b2;
+}
+html[data-theme="dark"] .icon-btn,
+html[data-theme="dark"] .theme-toggle {
+  background: #292429;
+  border-color: var(--border);
+  color: var(--text);
+}
+html[data-theme="dark"] .icon-btn:hover,
+html[data-theme="dark"] .theme-toggle:hover { background: #3a3036; }
+html[data-theme="dark"] .ticket-nav button:hover,
+html[data-theme="dark"] .ticket-nav button.active {
+  background: #292429;
+  border-color: #514149;
+}
+html[data-theme="dark"] .ticket-number-badge {
+  background: #3b3036;
+  color: #d9b8c0;
+}
+html[data-theme="dark"] .rail-note {
+  background: linear-gradient(145deg, #292327, #30252b);
+  border-color: var(--border);
+}
+html[data-theme="dark"] .ticket-card,
+html[data-theme="dark"] .conversation-section,
+html[data-theme="dark"] .workspace-chat-section,
+html[data-theme="dark"] .sizing-assistant-section {
+  background: var(--surface);
+  border-color: var(--border);
+}
+html[data-theme="dark"] .ticket-head { border-color: var(--border); }
+html[data-theme="dark"] .status-chip {
+  background: #2b262a;
+  border-color: var(--border);
+  color: var(--muted);
+}
+html[data-theme="dark"] .status-chip.imported {
+  background: #263129;
+  border-color: #3a5140;
+  color: #a9c6ae;
+}
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] input,
+html[data-theme="dark"] select,
+html[data-theme="dark"] .sizing-field input,
+html[data-theme="dark"] .sizing-field select {
+  background: #191719;
+  border-color: #453a40;
+  color: var(--text);
+}
+html[data-theme="dark"] textarea::placeholder,
+html[data-theme="dark"] input::placeholder { color: #82757b; }
+html[data-theme="dark"] .workspace-composer {
+  background: #1b191b;
+  border-color: #453a40;
+}
+html[data-theme="dark"] .workspace-chat-input,
+html[data-theme="dark"] .workspace-chat-input:focus {
+  background: transparent;
+  color: var(--text);
+}
+html[data-theme="dark"] .workspace-composer-tools { border-color: #3a3237; }
+html[data-theme="dark"] .workspace-format {
+  background: #292429;
+  border-color: #4a3d44;
+  color: var(--text);
+}
+html[data-theme="dark"] .workspace-message-content {
+  background: #342d32;
+  color: #eee7e9;
+}
+html[data-theme="dark"] .user-turn .workspace-message-content {
+  background: #74545f;
+  color: #fff;
+}
+html[data-theme="dark"] .assistant-turn .workspace-message-content {
+  background: transparent;
+  color: var(--text);
+}
+html[data-theme="dark"] .message-row {
+  background: #302a2e;
+  border-color: #494047;
+  color: var(--text);
+}
+html[data-theme="dark"] .message-row.agent-message {
+  background: #3a3036;
+  border-color: #55434b;
+}
+html[data-theme="dark"] .message-row.internal-note {
+  background: #3b3326;
+  border-color: #665337;
+}
+html[data-theme="dark"] .message-image-attachment { border-color: #51464c; }
+html[data-theme="dark"] .ticket-selection-controls {
+  background: #282327;
+  border-color: var(--border);
+}
+html[data-theme="dark"] .delete-selected-btn {
+  background: #30272b;
+  border-color: #62464a;
+  color: #e3a5a5;
+}
+html[data-theme="dark"] .ticket-nav button.active .ticket-number-badge {
+  background: #947078;
+  color: #fff;
+}
+html[data-theme="dark"] .btn-soft {
+  background: #3b3036;
+  border-color: #514149;
+  color: #eadde1;
+}
+html[data-theme="dark"] .btn-soft:hover:not(:disabled) { background: #493840; }
+html[data-theme="dark"] .text-btn,
+html[data-theme="dark"] .sizing-actions a { color: #d5aeb7; }
+html[data-theme="dark"] .accuracy-tag {
+  background: #393127;
+  color: #d8b98e;
+}
+html[data-theme="dark"] .footer { color: #9f9298; }
+html[data-theme="dark"] .insight-popover,
+html[data-theme="dark"] .insight-chat-popover {
+  background: #242024;
+  border-color: var(--border);
+  color: var(--text);
+}
+html[data-theme="dark"] .insight-popover-head,
+html[data-theme="dark"] .insight-chat-head {
+  border-color: var(--border);
+}
+html[data-theme="dark"] .login-screen { background: var(--bg); }
+html[data-theme="dark"] .login-card {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text);
+}
+html[data-theme="dark"] .login-intro p,
+html[data-theme="dark"] .login-security { color: var(--muted); }
+html[data-theme="dark"] .login-wordmark { color: #eadde1; }
+@media (max-width: 560px) {
+  .theme-toggle { width: 32px; height: 32px; }
+  .top-actions { gap: 7px; }
+  .privacy-pill { padding: 6px 8px; }
+}
