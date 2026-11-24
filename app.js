@@ -804,64 +804,102 @@ function syncInsightChatSize() {
   // Intentionally no-op: do not overwrite the chat window's own size.
 }
 
-// The Insight launcher can be moved anywhere within the viewport.
+// The Insight launcher snaps to either viewport edge and stores a
+// proportional vertical position so it stays in view at any window size.
 function setupInsightLauncherDrag(card, ticket) {
   const launcher = $(card, ".insight-launcher");
   if (!launcher || launcher.dataset.dragReady) return;
   launcher.dataset.dragReady = "true";
-  const savedPosition = ticket.insightWindowLayout?.launcher;
-  if (savedPosition && Number.isFinite(savedPosition.left) && Number.isFinite(savedPosition.top)) {
+
+  const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+  const applyPosition = (side, topRatio) => {
+    const ratio = clamp(Number(topRatio) || 0.5, 0.06, 0.94);
+    const edge = 10;
+    const rect = launcher.getBoundingClientRect();
     launcher.style.position = "fixed";
-    launcher.style.left = savedPosition.left + "px";
-    launcher.style.top = savedPosition.top + "px";
-    launcher.style.right = "auto";
+    launcher.style.top = clamp(ratio * window.innerHeight, rect.height / 2 + edge, window.innerHeight - rect.height / 2 - edge) + "px";
     launcher.style.bottom = "auto";
+    launcher.style.transform = "translateY(-50%)";
+    launcher.style.left = side === "left" ? edge + "px" : "auto";
+    launcher.style.right = side === "right" ? edge + "px" : "auto";
+    launcher.dataset.dockSide = side;
+    launcher.dataset.topRatio = String(ratio);
+  };
+
+  const saved = ticket.insightWindowLayout?.launcher;
+  if (saved && (saved.side === "left" || saved.side === "right")) {
+    applyPosition(saved.side, saved.topRatio);
+  } else if (saved && Number.isFinite(saved.left) && Number.isFinite(saved.top)) {
+    // Migrate old pixel-based launcher positions to a responsive edge dock.
+    const side = saved.left + launcher.offsetWidth / 2 < window.innerWidth / 2 ? "left" : "right";
+    const ratio = saved.top / Math.max(1, window.innerHeight);
+    applyPosition(side, ratio);
+    ticket.insightWindowLayout.launcher = { side, topRatio: clamp(ratio, 0.06, 0.94) };
+    saveTicketData();
   }
-  let startX = 0, startY = 0, moved = false;
+
+  let pointerStartX = 0;
+  let pointerStartY = 0;
+  let originLeft = 0;
+  let originTop = 0;
+  let moved = false;
 
   launcher.addEventListener("pointerdown", event => {
     if (event.button !== 0) return;
-    startX = event.clientX;
-    startY = event.clientY;
+    const rect = launcher.getBoundingClientRect();
+    pointerStartX = event.clientX;
+    pointerStartY = event.clientY;
+    originLeft = rect.left;
+    originTop = rect.top;
     moved = false;
     launcher.setPointerCapture(event.pointerId);
   });
 
   launcher.addEventListener("pointermove", event => {
     if (!launcher.hasPointerCapture(event.pointerId)) return;
-    const dx = event.clientX - startX;
-    const dy = event.clientY - startY;
+    const dx = event.clientX - pointerStartX;
+    const dy = event.clientY - pointerStartY;
     if (!moved && Math.abs(dx) + Math.abs(dy) < 5) return;
     moved = true;
     const rect = launcher.getBoundingClientRect();
-    const left = Math.max(8, Math.min(window.innerWidth - rect.width - 8, rect.left + dx));
-    const top = Math.max(8, Math.min(window.innerHeight - rect.height - 8, rect.top + dy));
-    ticket.insightWindowLayout = ticket.insightWindowLayout || {};
-    ticket.insightWindowLayout.launcher = { left, top };
+    const left = clamp(originLeft + dx, 8, window.innerWidth - rect.width - 8);
+    const top = clamp(originTop + dy, 8, window.innerHeight - rect.height - 8);
     launcher.style.position = "fixed";
     launcher.style.left = left + "px";
     launcher.style.top = top + "px";
     launcher.style.right = "auto";
     launcher.style.bottom = "auto";
-    startX = event.clientX;
-    startY = event.clientY;
+    launcher.style.transform = "none";
   });
 
   launcher.addEventListener("pointerup", event => {
     if (launcher.hasPointerCapture(event.pointerId)) launcher.releasePointerCapture(event.pointerId);
-    if (moved) {
-      launcher.dataset.justDragged = "true";
-      setTimeout(() => { delete launcher.dataset.justDragged; }, 180);
-    }
+    if (!moved) return;
+    const rect = launcher.getBoundingClientRect();
+    const side = rect.left + rect.width / 2 < window.innerWidth / 2 ? "left" : "right";
+    const ratio = clamp((rect.top + rect.height / 2) / Math.max(1, window.innerHeight), 0.06, 0.94);
+    applyPosition(side, ratio);
+    ticket.insightWindowLayout = ticket.insightWindowLayout || {};
+    ticket.insightWindowLayout.launcher = { side, topRatio: ratio };
+    saveTicketData();
+    launcher.dataset.justDragged = "true";
+    setTimeout(() => { delete launcher.dataset.justDragged; }, 180);
   });
+
   launcher.addEventListener("click", event => {
     if (launcher.dataset.justDragged === "true") {
       event.preventDefault();
       event.stopImmediatePropagation();
     }
   }, true);
-}
 
+  window.addEventListener("resize", () => {
+    const position = ticket.insightWindowLayout?.launcher;
+    if (position && (position.side === "left" || position.side === "right") && launcher.isConnected) {
+      applyPosition(position.side, position.topRatio);
+    }
+  });
+}
 
 // =====================================
 // DRAGGABLE + RESIZABLE AI WINDOWS
