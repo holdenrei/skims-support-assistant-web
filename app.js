@@ -13,7 +13,7 @@ function applyTheme(theme) {
     toggle.setAttribute("title", isDark ? "Switch to normal mode" : "Switch to night mode");
     toggle.setAttribute("aria-pressed", String(isDark));
     const icon = toggle.querySelector(".theme-toggle-icon");
-    if (icon) icon.textContent = isDark ? "☀" : "☾";
+    if (icon) icon.textContent = isDark ? "☾" : "☀";
   }
 }
 
