@@ -1309,14 +1309,14 @@ const server = http.createServer(async (req, res) => {
         // the latest exact messages needed for the current decision.
         const customerContext = String(
           body.customerContext || ""
-        ).slice(-5000);
+        ).slice(-3000);
 
         const agentNotes = String(
           body.agentNotes || ""
-        ).slice(-1800);
+        ).slice(-900);
 
         const messages = Array.isArray(body.messages)
-          ? body.messages.slice(-6)
+          ? body.messages.slice(-4)
           : [];
 
         if (!customerContext.trim()) {
@@ -1340,7 +1340,7 @@ const server = http.createServer(async (req, res) => {
           }
 
           const content = String(message.content || "")
-            .slice(-700)
+            .slice(-400)
             .trim();
 
           if (content) {
@@ -1369,9 +1369,9 @@ const server = http.createServer(async (req, res) => {
 
         const caseInsight = body.caseInsight && typeof body.caseInsight === "object"
           ? {
-              summary: String(body.caseInsight.summary || "").slice(0, 1800),
-              customerConcern: String(body.caseInsight.customerConcern || "").slice(0, 1800),
-              suggestedResolution: String(body.caseInsight.suggestedResolution || "").slice(0, 1800)
+              summary: String(body.caseInsight.summary || "").slice(0, 650),
+              customerConcern: String(body.caseInsight.customerConcern || "").slice(0, 450),
+              suggestedResolution: String(body.caseInsight.suggestedResolution || "").slice(0, 450)
             }
           : null;
 
@@ -1442,7 +1442,7 @@ ${caseInsight
 
 RECENT ORIGINAL CUSTOMER CASE RECORD (latest portion):
 
-${customerContext.slice(-4500)}
+${customerContext.slice(-2800)}
 
 AGENT NOTES / CONFIRMED FINDINGS:
 
