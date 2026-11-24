@@ -1435,16 +1435,17 @@ async function sendWorkspaceMessage(card, t) {
 
   const previousDraft = [...t.chat].reverse().find(m => m.role === "assistant")?.content || "";
   const agentInstructions = [
-    t.resolution ? "EXISTING AGENT NOTES / SIZING CONTEXT:\n" + t.resolution : "",
+    t.resolution ? "EXISTING AGENT NOTES / SIZING CONTEXT:\\n" + t.resolution.slice(-1800) : "",
     "CURRENT AGENT INSTRUCTION:",
     command,
-    previousDraft ? "\nPREVIOUS AI DRAFT TO USE AS CONTEXT (revise it only if the current instruction asks for a revision):\n" + previousDraft : ""
-  ].filter(Boolean).join("\n");
+    previousDraft ? "\\nPREVIOUS AI DRAFT TO USE AS CONTEXT (revise it only if the current instruction asks for a revision):\\n" + previousDraft.slice(-2500) : ""
+  ].filter(Boolean).join("\\n");
 
   try {
     const data = await apiPost("/draft", {
       customerContext: t.concern,
       confirmedResolution: agentInstructions,
+      caseInsight: t.insight || null,
       mode: t.mode
     });
     const reply = data.email || data.response || "";
