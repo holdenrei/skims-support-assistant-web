@@ -1304,16 +1304,19 @@ const server = http.createServer(async (req, res) => {
       // =====================================
 
       if (route === "/insight-chat") {
+        // Keep the internal AI chat request compact. The Insight summary
+        // preserves the overall case history; the recent transcript retains
+        // the latest exact messages needed for the current decision.
         const customerContext = String(
           body.customerContext || ""
-        ).slice(0, 80000);
+        ).slice(-5000);
 
         const agentNotes = String(
           body.agentNotes || ""
-        ).slice(0, 5000);
+        ).slice(-1800);
 
         const messages = Array.isArray(body.messages)
-          ? body.messages.slice(-10)
+          ? body.messages.slice(-6)
           : [];
 
         if (!customerContext.trim()) {
@@ -1337,7 +1340,7 @@ const server = http.createServer(async (req, res) => {
           }
 
           const content = String(message.content || "")
-            .slice(0, 1500)
+            .slice(-700)
             .trim();
 
           if (content) {
@@ -1358,7 +1361,7 @@ const server = http.createServer(async (req, res) => {
         }
 
         const policyContext = customerContext.slice(-14000) + "\n" + agentNotes;
-        const relevantPolicyReference = getInsightPolicyKnowledge(policyContext);
+        const relevantPolicyReference = getInsightPolicyKnowledge(policyContext).slice(0, 6500);
         const sizingRelated = /sizing|size chart|size guide|bra|underbust|overbust|cup size|band size|compression|fit recommendation/i.test(policyContext);
         const sizingReference = sizingRelated
           ? (await getSkimsSizingGuideReference()).slice(0, 4500)
@@ -1439,7 +1442,7 @@ ${caseInsight
 
 RECENT ORIGINAL CUSTOMER CASE RECORD (latest portion):
 
-${customerContext.slice(-9000)}
+${customerContext.slice(-4500)}
 
 AGENT NOTES / CONFIRMED FINDINGS:
 
