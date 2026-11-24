@@ -3207,7 +3207,44 @@ html[data-theme="dark"] .login-intro p,
 html[data-theme="dark"] .login-security { color: var(--muted); }
 html[data-theme="dark"] .login-wordmark { color: #eadde1; }
 @media (max-width: 560px) {
-  .theme-toggle { width: 32px; height: 32px; }
-  .top-actions { gap: 7px; }
-  .privacy-pill { padding: 6px 8px; }
+  .topbar {
+    gap: 8px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  .brand { min-width: 0; gap: 7px; }
+  .brand h1 { white-space: nowrap; }
+  .top-actions { flex: none; gap: 6px; }
+  .privacy-pill { padding: 5px 7px; font-size: 8px; gap: 5px; }
+  .theme-toggle {
+    width: 62px;
+    height: 34px;
+    padding: 3px;
+    flex: 0 0 62px;
+  }
+  .theme-toggle-knob {
+    width: 26px;
+    height: 26px;
+    transform: translateX(28px);
+  }
+  html[data-theme="dark"] .theme-toggle-knob {
+    transform: translateX(0);
+  }
+  .theme-toggle-icon,
+  html[data-theme="dark"] .theme-toggle-icon {
+    font-size: 14px;
+  }
+}
+
+
+
+/* Keep the theme switch colors consistent after the general dark-mode button styles. */
+html[data-theme="dark"] .theme-toggle {
+  background: #090909;
+  border-color: #090909;
+  color: #111;
+}
+html[data-theme="dark"] .theme-toggle-knob {
+  background: #fff;
+  color: #111;
 }
