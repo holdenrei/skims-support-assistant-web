@@ -779,6 +779,14 @@ function setupInsightLauncherDrag(card, ticket) {
   const launcher = $(card, ".insight-launcher");
   if (!launcher || launcher.dataset.dragReady) return;
   launcher.dataset.dragReady = "true";
+  const savedPosition = ticket.insightWindowLayout?.launcher;
+  if (savedPosition && Number.isFinite(savedPosition.left) && Number.isFinite(savedPosition.top)) {
+    launcher.style.position = "fixed";
+    launcher.style.left = savedPosition.left + "px";
+    launcher.style.top = savedPosition.top + "px";
+    launcher.style.right = "auto";
+    launcher.style.bottom = "auto";
+  }
   let startX = 0, startY = 0, moved = false;
 
   launcher.addEventListener("pointerdown", event => {
@@ -798,6 +806,8 @@ function setupInsightLauncherDrag(card, ticket) {
     const rect = launcher.getBoundingClientRect();
     const left = Math.max(8, Math.min(window.innerWidth - rect.width - 8, rect.left + dx));
     const top = Math.max(8, Math.min(window.innerHeight - rect.height - 8, rect.top + dy));
+    ticket.insightWindowLayout = ticket.insightWindowLayout || {};
+    ticket.insightWindowLayout.launcher = { left, top };
     launcher.style.position = "fixed";
     launcher.style.left = left + "px";
     launcher.style.top = top + "px";
@@ -1041,6 +1051,10 @@ function bindCard(card, t) {
         concern: "",
         resolution: "",
         output: "",
+        chat: [],
+        chatLoading: false,
+        chatError: "",
+        conversationExpanded: false,
         customerName: "",
         insight: null,
         insightChat: [],
