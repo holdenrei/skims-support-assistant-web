@@ -1817,14 +1817,22 @@ Do not include explanations, labels, or commentary.
       // Keep each request within the shared Groq TPM budget. The compact
       // Insight summary preserves overall history; recent transcript text carries
       // exact wording and the latest developments into the draft.
-      const customerContext = String(body.customerContext || "").slice(-8000);
+      const hasCaseInsight = body.caseInsight &&
+        typeof body.caseInsight === "object" &&
+        Boolean(String(body.caseInsight.summary || body.caseInsight.customerConcern || "").trim());
+
+      // The Insight digest represents the full imported history. When it is
+      // available, send a smaller exact transcript tail for wording and recent
+      // developments. If Insight is not ready, retain a larger transcript tail.
+      const customerContext = String(body.customerContext || "")
+        .slice(-(hasCaseInsight ? 5000 : 8000));
       const confirmedResolution = String(body.confirmedResolution || "").slice(-3500);
       const sizingGuidance = String(body.sizingGuidance || "").slice(0, 1200);
-      const caseInsight = body.caseInsight && typeof body.caseInsight === "object"
+      const caseInsight = hasCaseInsight
         ? {
-            summary: String(body.caseInsight.summary || "").slice(0, 1400),
-            customerConcern: String(body.caseInsight.customerConcern || "").slice(0, 900),
-            suggestedResolution: String(body.caseInsight.suggestedResolution || "").slice(0, 1100)
+            summary: String(body.caseInsight.summary || "").slice(0, 700),
+            customerConcern: String(body.caseInsight.customerConcern || "").slice(0, 500),
+            suggestedResolution: String(body.caseInsight.suggestedResolution || "").slice(0, 300)
           }
         : null;
 
