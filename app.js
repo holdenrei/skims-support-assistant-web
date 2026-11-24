@@ -1208,6 +1208,24 @@ function bindCard(card, t) {
     workspaceInput.focus();
   });
 
+  $(card, ".workspace-fix-grammar").addEventListener("click", async event => {
+    const command = workspaceInput.value.trim();
+    if (!command || t.chatLoading) return;
+    const button = event.currentTarget;
+    button.disabled = true;
+    statusForComposer(card, "Fixing grammar…");
+    try {
+      const data = await apiPost("/fix-grammar", { text: command });
+      workspaceInput.value = data.email || data.response || data.text || command;
+      statusForComposer(card, "Grammar corrected. Review your command before sending.");
+    } catch (error) {
+      statusForComposer(card, error.message || "Grammar correction failed.");
+    } finally {
+      button.disabled = false;
+      workspaceInput.focus();
+    }
+  });
+
   $(card, ".generate-btn").addEventListener("click", () => {
     generateDraft(card, t);
   });
@@ -1256,6 +1274,11 @@ function bindCard(card, t) {
 // =====================================
 // CONVERSATIONAL DRAFTING WORKSPACE
 // =====================================
+
+function statusForComposer(card, message) {
+  const status = $(card, ".workspace-chat-status");
+  if (status) status.textContent = message || "";
+}
 
 function renderWorkspaceChat(card, t) {
   const host = $(card, ".workspace-chat-messages");
