@@ -2,6 +2,35 @@
 const API_URL = "";
 const AUTH_STORAGE_KEY = "skimsSupportAssistant_session_v1";
 const STORAGE_KEY = "skimsSupportAssistant_ticketData_v2";
+const THEME_STORAGE_KEY = "skimsSupportAssistant_theme_v1";
+
+function applyTheme(theme) {
+  const isDark = theme === "dark";
+  document.documentElement.dataset.theme = isDark ? "dark" : "light";
+  const toggle = document.getElementById("themeToggle");
+  if (toggle) {
+    toggle.setAttribute("aria-label", isDark ? "Switch to normal mode" : "Switch to night mode");
+    toggle.setAttribute("title", isDark ? "Switch to normal mode" : "Switch to night mode");
+    toggle.setAttribute("aria-pressed", String(isDark));
+    const icon = toggle.querySelector(".theme-toggle-icon");
+    if (icon) icon.textContent = isDark ? "☀" : "☾";
+  }
+}
+
+function initializeThemeToggle() {
+  let savedTheme = "light";
+  try {
+    savedTheme = localStorage.getItem(THEME_STORAGE_KEY) === "dark" ? "dark" : "light";
+  } catch {}
+  applyTheme(savedTheme);
+  document.getElementById("themeToggle")?.addEventListener("click", () => {
+    const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    applyTheme(nextTheme);
+    try { localStorage.setItem(THEME_STORAGE_KEY, nextTheme); } catch {}
+  });
+}
+
+initializeThemeToggle();
 
 const ticketArea = document.getElementById("ticketArea");
 const ticketNav = document.getElementById("ticketNav");
