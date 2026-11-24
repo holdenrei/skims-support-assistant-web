@@ -1368,6 +1368,7 @@ async function sendWorkspaceMessage(card, t) {
 
   const previousDraft = [...t.chat].reverse().find(m => m.role === "assistant")?.content || "";
   const agentInstructions = [
+    t.resolution ? "EXISTING AGENT NOTES / SIZING CONTEXT:\n" + t.resolution : "",
     "CURRENT AGENT INSTRUCTION:",
     command,
     previousDraft ? "\nPREVIOUS AI DRAFT TO USE AS CONTEXT (revise it only if the current instruction asks for a revision):\n" + previousDraft : ""
