@@ -148,7 +148,7 @@
             <h3>Conversation</h3>
             <p class="section-sub">Customer and agent message history</p>
           </div>
-          <button class="text-btn view-conversation">View details</button>
+          <button class="text-btn view-conversation" aria-expanded="false">View full conversation</button>
         </div>
 
         <div class="conversation-empty">
@@ -161,19 +161,46 @@
         <div class="attachment-list" hidden></div>
       </section>
 
-      <section class="field-section">
-        <label>CUSTOMER CONCERN</label>
-        <textarea class="customer-concern" rows="3" placeholder="Your imported conversation history will appear here. Review it, then add a concise summary or key context if needed."></textarea>
-      </section>
-
-      <section class="field-section resolution-field">
-        <div class="label-row">
-          <label>INTENDED RESOLUTION</label>
-          <span class="accuracy-tag">Accuracy first</span>
+      <section class="workspace-chat-section">
+        <div class="section-heading compact">
+          <div><span class="section-icon">✧</span><h3>AI Workspace</h3><p class="section-sub">Your commands and SKIMS AI responses</p></div>
         </div>
-        <textarea class="confirmed-resolution" rows="4" placeholder="Enter confirmed findings and exactly how you want the response handled. Include what to say, what to avoid, and any confirmed next steps."></textarea>
-        <p class="microcopy">Your confirmed findings and instructions guide the draft. The assistant must not invent missing facts or promises.</p>
+        <div class="workspace-chat-messages" role="log" aria-live="polite" aria-relevant="additions"></div>
+        <div class="workspace-chat-status" role="status" aria-live="polite"></div>
+        <div class="workspace-composer">
+          <textarea class="workspace-chat-input" rows="3" maxlength="6000" placeholder="Message your SKIMS AI..."></textarea>
+          <div class="workspace-composer-tools">
+            <div class="composer-left-tools">
+              <button type="button" class="composer-tool expand-composer" title="Expand message box" aria-label="Expand message box">↗</button>
+              <label class="composer-format-label">Format
+                <select class="workspace-format" aria-label="Response format">
+                  <option value="none">None</option>
+                  <option value="email" selected>Email</option>
+                  <option value="sms">SMS</option>
+                  <option value="live_chat">Live Chat</option>
+                </select>
+              </label>
+            </div>
+            <button type="button" class="workspace-send btn btn-primary">Send ↑</button>
+          </div>
+        </div>
+        <p class="microcopy">AI responses are drafts. Review all details before using them with a customer.</p>
       </section>
+      <div class="legacy-drafting-fields" hidden>
+              <section class="field-section">
+                <label>CUSTOMER CONCERN</label>
+                <textarea class="customer-concern" rows="3" placeholder="Your imported conversation history will appear here. Review it, then add a concise summary or key context if needed."></textarea>
+              </section>
+        
+              <section class="field-section resolution-field">
+                <div class="label-row">
+                  <label>INTENDED RESOLUTION</label>
+                  <span class="accuracy-tag">Accuracy first</span>
+                </div>
+                <textarea class="confirmed-resolution" rows="4" placeholder="Enter confirmed findings and exactly how you want the response handled. Include what to say, what to avoid, and any confirmed next steps."></textarea>
+                <p class="microcopy">Your confirmed findings and instructions guide the draft. The assistant must not invent missing facts or promises.</p>
+              </section>
+      </div>
 
       <!-- FLOATING AI INSIGHT AND SEPARATE CHAT -->
       <div class="insight-widget">
