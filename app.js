@@ -16,6 +16,10 @@ const tickets = Array.from({ length: 5 }, (_, i) => ({
   concern: "",
   resolution: "",
   output: "",
+  chat: [],
+  chatLoading: false,
+  chatError: "",
+  conversationExpanded: false,
   status: "empty",
   importStatus: "Paste the URL belonging to this ticket only.",
   collapsed: false,
@@ -58,6 +62,8 @@ function saveTicketData() {
       concern: t.concern,
       resolution: t.resolution,
       output: t.output,
+      chat: t.chat,
+      conversationExpanded: t.conversationExpanded,
       status: t.status,
       importStatus: t.importStatus,
       collapsed: t.collapsed,
@@ -101,6 +107,8 @@ function restoreTicketData() {
       t.concern = item.concern || "";
       t.resolution = item.resolution || "";
       t.output = item.output || "";
+      t.chat = Array.isArray(item.chat) ? item.chat : [];
+      t.conversationExpanded = Boolean(item.conversationExpanded);
       t.status = item.status || "empty";
 
       t.importStatus = item.importStatus ||
@@ -183,6 +191,10 @@ function resetTicketState(t) {
     concern: "",
     resolution: "",
     output: "",
+    chat: [],
+    chatLoading: false,
+    chatError: "",
+    conversationExpanded: false,
     status: "empty",
     importStatus: "Paste the URL belonging to this ticket only.",
     collapsed: false,
@@ -348,6 +360,8 @@ function render(options = {}) {
   $(card, ".customer-concern").value = t.concern;
   $(card, ".confirmed-resolution").value = t.resolution;
   $(card, ".generated-output").value = t.output;
+  $(card, ".workspace-format").value = t.mode || "email";
+  renderWorkspaceChat(card, t);
 
   card.classList.toggle("collapsed", t.collapsed);
 
@@ -367,13 +381,21 @@ function render(options = {}) {
 
     preview.hidden = false;
     preview.replaceChildren();
+    preview.style.maxHeight = t.conversationExpanded ? "none" : "230px";
+    preview.classList.toggle("is-expanded", t.conversationExpanded);
 
-    t.conversation.forEach(m => {
+    $(card, ".view-conversation").textContent = t.conversationExpanded ? "Close full conversation" : "View full conversation";
+    $(card, ".view-conversation").setAttribute("aria-expanded", String(t.conversationExpanded));
+    const visibleMessages = t.conversationExpanded ? t.conversation : t.conversation.slice(-3);
+    visibleMessages.forEach(m => {
       const row = document.createElement("div");
-      row.className = "message-row";
+      const sender = String(m.sender || "Message");
+      const isNote = /note/i.test(sender) || m.type === "note" || m.isNote === true;
+      const isCustomer = /customer/i.test(sender) || m.direction === "in";
+      row.className = "message-row " + (isNote ? "internal-note" : isCustomer ? "customer-message" : "agent-message");
 
       const strong = document.createElement("strong");
-      strong.textContent = m.sender || "Message";
+      strong.textContent = isNote ? "Internal note · Agent" : isCustomer ? "Customer" : "Agent";
 
       const time = document.createElement("small");
       time.className = "message-time";
@@ -388,21 +410,33 @@ function render(options = {}) {
       row.append(strong, time, p);
 
       (m.attachments || []).forEach(a => {
-        const link = document.createElement("a");
-
-        link.className = "message-attachment";
-        link.textContent = "↗ " + (a.name || "Attachment");
-
-        if (a.url) {
-          link.href = a.url;
-          link.target = "_blank";
-          link.rel = "noopener noreferrer";
+        if (a.url && /^image\//i.test(a.type || "")) {
+          const imageLink = document.createElement("a");
+          imageLink.className = "message-image-attachment";
+          imageLink.href = a.url;
+          imageLink.target = "_blank";
+          imageLink.rel = "noopener noreferrer";
+          const image = document.createElement("img");
+          image.src = a.url;
+          image.alt = a.name || "Conversation image";
+          image.loading = "lazy";
+          image.onerror = () => imageLink.replaceWith(document.createTextNode(a.name || "Image preview unavailable"));
+          imageLink.append(image);
+          row.append(imageLink);
         } else {
-          link.href = "#";
-          link.addEventListener("click", e => e.preventDefault());
+          const link = document.createElement("a");
+          link.className = "message-attachment";
+          link.textContent = "↗ " + (a.name || "Attachment");
+          if (a.url) {
+            link.href = a.url;
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+          } else {
+            link.href = "#";
+            link.addEventListener("click", e => e.preventDefault());
+          }
+          row.append(link);
         }
-
-        row.append(link);
       });
 
       preview.append(row);
@@ -417,7 +451,7 @@ function render(options = {}) {
   if (t.attachments.length) {
     const list = $(card, ".attachment-list");
 
-    list.hidden = false;
+    list.hidden = !t.conversationExpanded;
     list.replaceChildren();
 
     t.attachments.forEach(a => {
@@ -741,6 +775,65 @@ function syncInsightChatSize() {
   // Intentionally no-op: do not overwrite the chat window's own size.
 }
 
+// The Insight launcher can be moved anywhere within the viewport.
+function setupInsightLauncherDrag(card, ticket) {
+  const launcher = $(card, ".insight-launcher");
+  if (!launcher || launcher.dataset.dragReady) return;
+  launcher.dataset.dragReady = "true";
+  const savedPosition = ticket.insightWindowLayout?.launcher;
+  if (savedPosition && Number.isFinite(savedPosition.left) && Number.isFinite(savedPosition.top)) {
+    launcher.style.position = "fixed";
+    launcher.style.left = savedPosition.left + "px";
+    launcher.style.top = savedPosition.top + "px";
+    launcher.style.right = "auto";
+    launcher.style.bottom = "auto";
+  }
+  let startX = 0, startY = 0, moved = false;
+
+  launcher.addEventListener("pointerdown", event => {
+    if (event.button !== 0) return;
+    startX = event.clientX;
+    startY = event.clientY;
+    moved = false;
+    launcher.setPointerCapture(event.pointerId);
+  });
+
+  launcher.addEventListener("pointermove", event => {
+    if (!launcher.hasPointerCapture(event.pointerId)) return;
+    const dx = event.clientX - startX;
+    const dy = event.clientY - startY;
+    if (!moved && Math.abs(dx) + Math.abs(dy) < 5) return;
+    moved = true;
+    const rect = launcher.getBoundingClientRect();
+    const left = Math.max(8, Math.min(window.innerWidth - rect.width - 8, rect.left + dx));
+    const top = Math.max(8, Math.min(window.innerHeight - rect.height - 8, rect.top + dy));
+    ticket.insightWindowLayout = ticket.insightWindowLayout || {};
+    ticket.insightWindowLayout.launcher = { left, top };
+    launcher.style.position = "fixed";
+    launcher.style.left = left + "px";
+    launcher.style.top = top + "px";
+    launcher.style.right = "auto";
+    launcher.style.bottom = "auto";
+    startX = event.clientX;
+    startY = event.clientY;
+  });
+
+  launcher.addEventListener("pointerup", event => {
+    if (launcher.hasPointerCapture(event.pointerId)) launcher.releasePointerCapture(event.pointerId);
+    if (moved) {
+      launcher.dataset.justDragged = "true";
+      setTimeout(() => { delete launcher.dataset.justDragged; }, 180);
+    }
+  });
+  launcher.addEventListener("click", event => {
+    if (launcher.dataset.justDragged === "true") {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+  }, true);
+}
+
+
 // =====================================
 // DRAGGABLE + RESIZABLE AI WINDOWS
 // =====================================
@@ -782,6 +875,7 @@ function setupFloatingWindowInteractions(card, ticket) {
 
 function bindCard(card, t) {
   setupFloatingWindowInteractions(card, t);
+  setupInsightLauncherDrag(card, t);
 
   $(card, ".conversation-url").addEventListener("input", e => {
     t.url = e.target.value.trim();
@@ -826,12 +920,9 @@ function bindCard(card, t) {
   });
 
   $(card, ".view-conversation").addEventListener("click", () => {
-    const p = $(card, ".conversation-preview");
-
-    if (!p.hidden) {
-      p.style.maxHeight =
-        p.style.maxHeight === "none" ? "190px" : "none";
-    }
+    t.conversationExpanded = !t.conversationExpanded;
+    saveTicketData();
+    render();
   });
 
 
@@ -961,6 +1052,10 @@ function bindCard(card, t) {
         concern: "",
         resolution: "",
         output: "",
+        chat: [],
+        chatLoading: false,
+        chatError: "",
+        conversationExpanded: false,
         customerName: "",
         insight: null,
         insightChat: [],
@@ -1090,6 +1185,48 @@ function bindCard(card, t) {
     $(card, ".sizing-status").textContent = "Sizing details added to this ticket's AI notes. Generate AI Insight or a response to use them.";
   });
 
+  const workspaceInput = $(card, ".workspace-chat-input");
+  const workspaceSend = $(card, ".workspace-send");
+  const workspaceFormat = $(card, ".workspace-format");
+
+  workspaceFormat.addEventListener("change", () => {
+    t.mode = workspaceFormat.value;
+    card.querySelectorAll(".format-option").forEach(b => b.classList.toggle("selected", b.dataset.mode === t.mode));
+    saveTicketData();
+  });
+
+  workspaceSend.addEventListener("click", () => sendWorkspaceMessage(card, t));
+  workspaceInput.addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendWorkspaceMessage(card, t);
+    }
+  });
+
+  $(card, ".expand-composer").addEventListener("click", () => {
+    const expanded = workspaceInput.rows > 3;
+    workspaceInput.rows = expanded ? 3 : 8;
+    workspaceInput.focus();
+  });
+
+  $(card, ".workspace-fix-grammar").addEventListener("click", async event => {
+    const command = workspaceInput.value.trim();
+    if (!command || t.chatLoading) return;
+    const button = event.currentTarget;
+    button.disabled = true;
+    statusForComposer(card, "Fixing grammar…");
+    try {
+      const data = await apiPost("/fix-grammar", { text: command });
+      workspaceInput.value = data.email || data.response || data.text || command;
+      statusForComposer(card, "Grammar corrected. Review your command before sending.");
+    } catch (error) {
+      statusForComposer(card, error.message || "Grammar correction failed.");
+    } finally {
+      button.disabled = false;
+      workspaceInput.focus();
+    }
+  });
+
   $(card, ".generate-btn").addEventListener("click", () => {
     generateDraft(card, t);
   });
@@ -1132,6 +1269,134 @@ function bindCard(card, t) {
     saveTicketData();
     render();
   });
+}
+
+
+// =====================================
+// CONVERSATIONAL DRAFTING WORKSPACE
+// =====================================
+
+function statusForComposer(card, message) {
+  const status = $(card, ".workspace-chat-status");
+  if (status) status.textContent = message || "";
+}
+
+function renderWorkspaceChat(card, t) {
+  const host = $(card, ".workspace-chat-messages");
+  const status = $(card, ".workspace-chat-status");
+  const send = $(card, ".workspace-send");
+  const input = $(card, ".workspace-chat-input");
+  if (!host) return;
+  host.replaceChildren();
+
+  if (!t.chat.length) {
+    const empty = document.createElement("div");
+    empty.className = "workspace-chat-empty";
+    empty.textContent = t.conversation.length
+      ? "Your customer conversation is ready. Tell the AI what response you need."
+      : "Start by importing a Kustomer conversation, then give your AI an instruction.";
+    host.append(empty);
+  }
+
+  t.chat.forEach((message, index) => {
+    const item = document.createElement("article");
+    item.className = message.role === "user" ? "workspace-chat-turn user-turn" : "workspace-chat-turn assistant-turn";
+    const label = document.createElement("div");
+    label.className = "workspace-message-label";
+    label.textContent = message.role === "user" ? "You" : "SKIMS AI";
+    const body = document.createElement("div");
+    body.className = "workspace-message-content";
+    body.textContent = message.content || "";
+    item.append(label, body);
+    if (message.role === "assistant" && message.content) {
+      const actions = document.createElement("div");
+      actions.className = "workspace-message-actions";
+      const copy = document.createElement("button");
+      copy.type = "button";
+      copy.className = "workspace-copy";
+      copy.title = "Copy response";
+      copy.setAttribute("aria-label", "Copy AI response");
+      copy.textContent = "▢";
+      copy.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(message.content);
+          copy.textContent = "✓";
+          copy.title = "Copied";
+          setTimeout(() => { if (copy.isConnected) { copy.textContent = "▢"; copy.title = "Copy response"; } }, 1200);
+        } catch {
+          status.textContent = "Copy is unavailable in this browser context.";
+        }
+      });
+      actions.append(copy);
+      item.append(actions);
+    }
+    host.append(item);
+  });
+
+  if (t.chatLoading) {
+    const typing = document.createElement("div");
+    typing.className = "workspace-chat-typing";
+    typing.textContent = "SKIMS AI is thinking…";
+    host.append(typing);
+  }
+  status.textContent = t.chatError || "";
+  send.disabled = t.chatLoading;
+  send.textContent = t.chatLoading ? "Generating…" : "Send ↑";
+  input.disabled = t.chatLoading;
+  host.scrollTop = host.scrollHeight;
+}
+
+async function sendWorkspaceMessage(card, t) {
+  const input = $(card, ".workspace-chat-input");
+  const status = $(card, ".workspace-chat-status");
+  const command = input.value.trim();
+  if (!command || t.chatLoading) return;
+
+  if (!t.concern.trim()) {
+    t.chatError = "Import the Kustomer conversation before asking the AI to draft a response.";
+    status.textContent = t.chatError;
+    return;
+  }
+
+  t.mode = $(card, ".workspace-format").value || "none";
+  t.chat.push({ role: "user", content: command, timestamp: Date.now() });
+  t.chatLoading = true;
+  t.chatError = "";
+  input.value = "";
+  saveTicketData();
+  renderWorkspaceChat(card, t);
+
+  const previousDraft = [...t.chat].reverse().find(m => m.role === "assistant")?.content || "";
+  const agentInstructions = [
+    t.resolution ? "EXISTING AGENT NOTES / SIZING CONTEXT:\n" + t.resolution : "",
+    "CURRENT AGENT INSTRUCTION:",
+    command,
+    previousDraft ? "\nPREVIOUS AI DRAFT TO USE AS CONTEXT (revise it only if the current instruction asks for a revision):\n" + previousDraft : ""
+  ].filter(Boolean).join("\n");
+
+  try {
+    const data = await apiPost("/draft", {
+      customerContext: t.concern,
+      confirmedResolution: agentInstructions,
+      mode: t.mode
+    });
+    const reply = data.email || data.response || "";
+    if (!reply.trim()) throw new Error("The AI returned an empty response.");
+    t.output = reply;
+    t.status = "drafted";
+    t.chat.push({ role: "assistant", content: reply, timestamp: Date.now() });
+    t.chatError = "";
+    saveTicketData();
+  } catch (error) {
+    t.chatError = error.message || "Unable to generate a response.";
+    t.chat.push({ role: "assistant", content: "I couldn't generate a response: " + t.chatError, timestamp: Date.now(), error: true });
+    saveTicketData();
+  } finally {
+    t.chatLoading = false;
+    saveTicketData();
+    if (t.id === activeId) render({ scrollChatToBottom: true });
+    else refreshNav();
+  }
 }
 
 
@@ -1278,7 +1543,7 @@ async function generateInsight(t) {
   t.insightLoading = true;
   t.insightError = "";
   t.insightStale = false;
-  t.insightOpen = true;
+  t.insightOpen = false;
   t.insightUnread = false;
 
   saveTicketData();
@@ -1522,7 +1787,7 @@ async function waitForImport(t) {
 
       t.insight = null;
       t.insightChat = [];
-      t.insightOpen = true;
+      t.insightOpen = false;
       t.insightChatOpen = false;
       t.insightUnread = false;
       t.insightLoading = false;

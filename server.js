@@ -643,7 +643,9 @@ function buildDraftSystemPrompt(mode, ticketContext = "") {
      "The core writing, empathy, continuity, formatting, and factual-accuracy requirements are defined in the SKIMS writing instructions above; apply them together with the grounding safeguards immediately above.",
     "",
     "SELECTED RESPONSE FORMAT: " + String(mode || "email").toUpperCase(),
-    "Apply the selected format's exact opening, structure, and channel-specific requirements from the instructions above. For customer-facing drafts, prioritize a thoughtful, personalized, complete response over a bare status update."
+    mode === "none"
+      ? "No channel format is selected. Follow the agent's requested deliverable and formatting without imposing Email, SMS, or Live Chat conventions."
+      : "Apply the selected format's exact opening, structure, and channel-specific requirements from the instructions above. For customer-facing drafts, prioritize a thoughtful, personalized, complete response over a bare status update."
   ].join("\n");
 }
 
@@ -1622,7 +1624,7 @@ If the agent has not provided a confirmed resolution, recommend what should be c
 
       if (route === "/refine") {
         const mode = String(body.mode || "email").toLowerCase();
-        const allowedModes = ["email", "live_chat", "sms"];
+        const allowedModes = ["email", "live_chat", "sms", "none"];
 
         const currentDraft = String(
           body.currentDraft || ""
@@ -1801,7 +1803,8 @@ Do not include explanations, labels, or commentary.
       const allowedModes = [
         "email",
         "live_chat",
-        "sms"
+        "sms",
+        "none"
       ];
 
       if (!allowedModes.includes(mode)) {
