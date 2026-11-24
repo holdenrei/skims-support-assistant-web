@@ -384,6 +384,8 @@ function render(options = {}) {
     preview.style.maxHeight = t.conversationExpanded ? "none" : "230px";
     preview.classList.toggle("is-expanded", t.conversationExpanded);
 
+    $(card, ".view-conversation").textContent = t.conversationExpanded ? "Close full conversation" : "View full conversation";
+    $(card, ".view-conversation").setAttribute("aria-expanded", String(t.conversationExpanded));
     t.conversation.forEach(m => {
       const row = document.createElement("div");
       const sender = String(m.sender || "Message");
@@ -407,21 +409,33 @@ function render(options = {}) {
       row.append(strong, time, p);
 
       (m.attachments || []).forEach(a => {
-        const link = document.createElement("a");
-
-        link.className = "message-attachment";
-        link.textContent = "↗ " + (a.name || "Attachment");
-
-        if (a.url) {
-          link.href = a.url;
-          link.target = "_blank";
-          link.rel = "noopener noreferrer";
+        if (a.url && /^image\//i.test(a.type || "")) {
+          const imageLink = document.createElement("a");
+          imageLink.className = "message-image-attachment";
+          imageLink.href = a.url;
+          imageLink.target = "_blank";
+          imageLink.rel = "noopener noreferrer";
+          const image = document.createElement("img");
+          image.src = a.url;
+          image.alt = a.name || "Conversation image";
+          image.loading = "lazy";
+          image.onerror = () => imageLink.replaceWith(document.createTextNode(a.name || "Image preview unavailable"));
+          imageLink.append(image);
+          row.append(imageLink);
         } else {
-          link.href = "#";
-          link.addEventListener("click", e => e.preventDefault());
+          const link = document.createElement("a");
+          link.className = "message-attachment";
+          link.textContent = "↗ " + (a.name || "Attachment");
+          if (a.url) {
+            link.href = a.url;
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+          } else {
+            link.href = "#";
+            link.addEventListener("click", e => e.preventDefault());
+          }
+          row.append(link);
         }
-
-        row.append(link);
       });
 
       preview.append(row);
@@ -760,6 +774,55 @@ function syncInsightChatSize() {
   // Intentionally no-op: do not overwrite the chat window's own size.
 }
 
+// The Insight launcher can be moved anywhere within the viewport.
+function setupInsightLauncherDrag(card, ticket) {
+  const launcher = $(card, ".insight-launcher");
+  if (!launcher || launcher.dataset.dragReady) return;
+  launcher.dataset.dragReady = "true";
+  let startX = 0, startY = 0, moved = false;
+
+  launcher.addEventListener("pointerdown", event => {
+    if (event.button !== 0) return;
+    startX = event.clientX;
+    startY = event.clientY;
+    moved = false;
+    launcher.setPointerCapture(event.pointerId);
+  });
+
+  launcher.addEventListener("pointermove", event => {
+    if (!launcher.hasPointerCapture(event.pointerId)) return;
+    const dx = event.clientX - startX;
+    const dy = event.clientY - startY;
+    if (!moved && Math.abs(dx) + Math.abs(dy) < 5) return;
+    moved = true;
+    const rect = launcher.getBoundingClientRect();
+    const left = Math.max(8, Math.min(window.innerWidth - rect.width - 8, rect.left + dx));
+    const top = Math.max(8, Math.min(window.innerHeight - rect.height - 8, rect.top + dy));
+    launcher.style.position = "fixed";
+    launcher.style.left = left + "px";
+    launcher.style.top = top + "px";
+    launcher.style.right = "auto";
+    launcher.style.bottom = "auto";
+    startX = event.clientX;
+    startY = event.clientY;
+  });
+
+  launcher.addEventListener("pointerup", event => {
+    if (launcher.hasPointerCapture(event.pointerId)) launcher.releasePointerCapture(event.pointerId);
+    if (moved) {
+      launcher.dataset.justDragged = "true";
+      setTimeout(() => { delete launcher.dataset.justDragged; }, 180);
+    }
+  });
+  launcher.addEventListener("click", event => {
+    if (launcher.dataset.justDragged === "true") {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+  }, true);
+}
+
+
 // =====================================
 // DRAGGABLE + RESIZABLE AI WINDOWS
 // =====================================
@@ -801,6 +864,7 @@ function setupFloatingWindowInteractions(card, ticket) {
 
 function bindCard(card, t) {
   setupFloatingWindowInteractions(card, t);
+  setupInsightLauncherDrag(card, t);
 
   $(card, ".conversation-url").addEventListener("input", e => {
     t.url = e.target.value.trim();
@@ -1440,7 +1504,7 @@ async function generateInsight(t) {
   t.insightLoading = true;
   t.insightError = "";
   t.insightStale = false;
-  t.insightOpen = true;
+  t.insightOpen = false;
   t.insightUnread = false;
 
   saveTicketData();
@@ -1684,7 +1748,7 @@ async function waitForImport(t) {
 
       t.insight = null;
       t.insightChat = [];
-      t.insightOpen = true;
+      t.insightOpen = false;
       t.insightChatOpen = false;
       t.insightUnread = false;
       t.insightLoading = false;
