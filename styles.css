@@ -2977,3 +2977,8 @@ input:focus {
     align-items: flex-end;
   }
 }
+
+/* The legacy one-shot drafting panel is retained in the DOM for compatibility. */
+.draft-section {
+  display: none !important;
+}
