@@ -2988,27 +2988,54 @@ input:focus {
    NIGHT MODE
 ========================================= */
 .theme-toggle {
-  width: 34px;
-  height: 34px;
+  position: relative;
+  width: 72px;
+  height: 38px;
   flex: none;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--surface);
-  color: var(--text);
+  padding: 3px;
+  border: 1px solid #d9c9c9;
+  border-radius: 999px;
+  background: #eadfdd;
+  color: #57464a;
   cursor: pointer;
-  transition: background .2s ease, border-color .2s ease, transform .2s ease;
+  box-shadow: inset 0 1px 3px rgba(54, 38, 42, .12);
+  transition: background .25s ease, border-color .25s ease, box-shadow .25s ease;
 }
 .theme-toggle:hover {
-  background: var(--rose);
-  transform: translateY(-1px);
+  box-shadow: inset 0 1px 3px rgba(54, 38, 42, .12), 0 2px 8px rgba(54, 38, 42, .12);
+}
+.theme-toggle-knob {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #fff;
+  color: #a9787d;
+  box-shadow: 0 1px 4px rgba(40, 27, 31, .2);
+  transform: translateX(34px);
+  transition: transform .28s cubic-bezier(.2,.8,.2,1), background .25s ease, color .25s ease;
 }
 .theme-toggle-icon {
   display: block;
-  font-size: 19px;
+  font-size: 18px;
   line-height: 1;
+}
+html[data-theme="dark"] .theme-toggle {
+  background: #090909;
+  border-color: #090909;
+  color: #111;
+}
+html[data-theme="dark"] .theme-toggle-knob {
+  transform: translateX(0);
+  background: #fff;
+  color: #111;
+}
+html[data-theme="dark"] .theme-toggle-icon {
+  font-size: 19px;
 }
 html[data-theme="dark"] {
   color-scheme: dark;
