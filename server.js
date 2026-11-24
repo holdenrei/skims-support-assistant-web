@@ -1622,7 +1622,7 @@ If the agent has not provided a confirmed resolution, recommend what should be c
 
       if (route === "/refine") {
         const mode = String(body.mode || "email").toLowerCase();
-        const allowedModes = ["email", "live_chat", "sms"];
+        const allowedModes = ["email", "live_chat", "sms", "none"];
 
         const currentDraft = String(
           body.currentDraft || ""
