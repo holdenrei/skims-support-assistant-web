@@ -1803,7 +1803,8 @@ Do not include explanations, labels, or commentary.
       const allowedModes = [
         "email",
         "live_chat",
-        "sms"
+        "sms",
+        "none"
       ];
 
       if (!allowedModes.includes(mode)) {
