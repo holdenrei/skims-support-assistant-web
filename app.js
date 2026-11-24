@@ -386,7 +386,8 @@ function render(options = {}) {
 
     $(card, ".view-conversation").textContent = t.conversationExpanded ? "Close full conversation" : "View full conversation";
     $(card, ".view-conversation").setAttribute("aria-expanded", String(t.conversationExpanded));
-    t.conversation.forEach(m => {
+    const visibleMessages = t.conversationExpanded ? t.conversation : t.conversation.slice(-3);
+    visibleMessages.forEach(m => {
       const row = document.createElement("div");
       const sender = String(m.sender || "Message");
       const isNote = /note/i.test(sender) || m.type === "note" || m.isNote === true;
@@ -450,7 +451,7 @@ function render(options = {}) {
   if (t.attachments.length) {
     const list = $(card, ".attachment-list");
 
-    list.hidden = false;
+    list.hidden = !t.conversationExpanded;
     list.replaceChildren();
 
     t.attachments.forEach(a => {
