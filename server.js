@@ -1361,7 +1361,7 @@ const server = http.createServer(async (req, res) => {
         }
 
         const policyContext = customerContext.slice(-14000) + "\n" + agentNotes;
-        const relevantPolicyReference = getInsightPolicyKnowledge(policyContext).slice(0, 6500);
+        const relevantPolicyReference = getInsightPolicyKnowledge(policyContext);
         const sizingRelated = /sizing|size chart|size guide|bra|underbust|overbust|cup size|band size|compression|fit recommendation/i.test(policyContext);
         const sizingReference = sizingRelated
           ? (await getSkimsSizingGuideReference()).slice(0, 4500)
