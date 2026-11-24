@@ -1362,7 +1362,6 @@ async function sendWorkspaceMessage(card, t) {
     t.chat.push({ role: "assistant", content: reply, timestamp: Date.now() });
     t.chatError = "";
     saveTicketData();
-    refreshNav();
   } catch (error) {
     t.chatError = error.message || "Unable to generate a response.";
     t.chat.push({ role: "assistant", content: "I couldn't generate a response: " + t.chatError, timestamp: Date.now(), error: true });
@@ -1370,7 +1369,8 @@ async function sendWorkspaceMessage(card, t) {
   } finally {
     t.chatLoading = false;
     saveTicketData();
-    renderWorkspaceChat(card, t);
+    if (t.id === activeId) render({ scrollChatToBottom: true });
+    else refreshNav();
   }
 }
 
