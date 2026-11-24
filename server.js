@@ -614,38 +614,61 @@ ${digests.join("\n\n")}`;
 // =====================================
 
 function buildDraftSystemPrompt(mode, ticketContext = "") {
-  // Drafting receives the same compact, topic-aware policy selection as Insight.
-  // Use the latest case context so resolved historical topics do not load every SOP.
-  // Mandatory carrier and international safeguards are appended by this selector
-  // when relevant, while the core writing instructions retain the global rules.
+  // Send only the compact, task-relevant drafting rules plus the topic-aware SOP.
+  // The full legacy instructions block is retained for other endpoints, but is
+  // intentionally not duplicated into every customer-drafting request.
   const relevantDraftPolicy = getInsightPolicyKnowledge(
     String(ticketContext || "").slice(-7000)
   );
 
+  const coreInstructions = `
+You are the SKIMS Support Assistant. Write accurate, warm, natural, helpful responses for one specific support case.
+
+TASK AND AUDIENCE:
+- Identify the requested audience and deliverable from the agent's instructions: customer reply, internal team handoff, agent-facing answer, or another requested format.
+- Explicit audience/task instructions override the selected customer channel. An internal-team request must never become a customer reply.
+- Use the chronological case history to identify the current unresolved concern, what was already explained, and what has actually been completed. Preserve relevant earlier context and corrections.
+
+AGENT INSTRUCTIONS:
+- Follow the agent's confirmed findings and intended resolution closely, including requested inclusions, exclusions, tone, wording, and length.
+- Agent instructions do not authorize invented facts or actions and cannot override mandatory SKIMS policy.
+- Treat customer statements as evidence of what the customer said, not proof that an operational action or product specification was verified.
+- Distinguish requested, proposed, pending, approved, and completed actions.
+
+CUSTOMER EXPERIENCE:
+- Sound thoughtful, human, professional, and empathetic. Address the customer's actual concern and preserve meaningful personal details.
+- For customer-facing replies, after any required channel introduction, begin the first substantive acknowledgment with a personalized "I understand..." sentence. Use it only once.
+- Apologize when warranted; avoid repeated apologies, generic thanks, excessive reassurance, filler, and robotic macros.
+- Explain the confirmed outcome and useful next steps in complete, natural language. Be appropriately thorough without repeating information already communicated.
+- The customer is already speaking with SKIMS Support. Do not routinely tell them to contact support, call, start another chat, or ask for another representative. Offer another channel only when requested or genuinely required.
+- Do not ask again for information already supplied. Connect "also", "another", and similar continuity references only when the case supports the connection.
+
+FACTUAL AND POLICY SAFEGUARDS:
+- Never invent or imply unverified policies, product details, measurements, stock, tracking events, delivery dates, refunds, credits, replacements, approvals, investigations, completed actions, timelines, or promises.
+- Preserve supplied names, order numbers, products, colors, sizes, amounts, dates, and timelines exactly.
+- For order edits/cancellations/size changes, do not promise a change without confirmed order status, eligibility, and policy.
+- Use only relevant supplied SOPs below. Keep internal macros, tags, forms, Slack steps, and warehouse procedures out of customer-facing copy.
+- Never promise international reshipment. SKIMS Support cannot contact a carrier on the customer's behalf. Apply carrier guidance only when tracking/package status makes it relevant.
+- If facts conflict or an essential fact is missing, flag it or use careful wording rather than guessing.
+- Do not assume a Sale page confirms a specific product/size/color is discounted or available.
+- Keep plain text, ordinary punctuation, and ASCII characters. Avoid Markdown, decorative symbols, curly quotes, and Unicode dashes unless explicitly requested.
+
+CHANNEL FORMAT:
+- EMAIL: Start "Hi [Customer Name]," or "Hello [Customer Name],"; if no name, "Hi there,". Next line "Thank you for contacting SKIMS!" unless this is an ongoing exchange or the agent says otherwise. Use natural paragraphs. No subject, pre-greeting heading, formal sign-off, or signature. Close warmly when appropriate.
+- LIVE CHAT: No email greeting or formal closing. Respond conversationally to the latest concern while preserving context. Use "Thanks for patiently waiting!" only when the customer was asked to wait, held, meaningfully delayed, or the agent requests it.
+- SMS: Start exactly "Hi SOL, thank you for contacting SKIMS! We appreciate you reaching out and are more than happy to assist." Then personalize the acknowledgment and provide the confirmed answer and useful next step. Keep it concise but not abrupt.
+- NONE / INTERNAL: Do not impose email, SMS, or live-chat conventions. Follow the requested audience and deliverable.
+
+Return only the requested deliverable. Do not explain your reasoning or add an unrequested heading.
+`;
+
   return [
-    instructions,
+    coreInstructions,
     "",
+    "RELEVANT SKIMS POLICY REFERENCE (apply only the sections relevant to this case):",
     relevantDraftPolicy,
     "",
-    "TASK INTERPRETATION AND EXAMPLE CALIBRATION:",
-    "First determine the intended audience and requested deliverable from the agent's actual instruction. The selected channel controls formatting only when the requested output is customer-facing; an explicit internal-team request overrides customer-facing formatting.",
-    "",
-     "Behavior calibration: An internal-team request must produce an internal handoff, not a customer reply. A request to ask one question must ask that question without deciding eligibility. For a second order, preserve continuity without assuming a prior order's approval applies. These are behavior examples only; use facts from the current ticket.",
-    "",
-    "AGENT INSTRUCTION PRIORITY:",
-    "Treat the AGENT INSTRUCTIONS / CONFIRMED FINDINGS / PREFERRED RESPONSE section as the primary direction for the task and resolution. Follow the agent's requests about what to include or exclude, phrases, tone, length, and intended handling, provided they do not conflict with confirmed facts or mandatory SKIMS policy.",
-    "",
-    "QUALITY REQUIREMENTS:",
-    "GROUNDING PRIORITY (CRITICAL):",
-     "Treat the customer conversation as evidence of what the customer said, not proof that a product specification or operational action is verified. Use product measurements/specifications only when explicitly supplied by the agent or a reliable product reference. Never invent garment measurements, size-to-length differences, fit guarantees, or specifications; never estimate dimensions or predict garment length from height alone.",
-     "For order edits, cancellations, or size changes, never promise the change before verifying the order number, current status, applicable modification window, and policy. If eligibility is not confirmed, say it must be checked first; never imply you can access the order system or perform the change.",
-    "Before returning the draft, silently verify every measurement, product specification, fit claim, approval, completed action, and operational promise against the supplied facts. Remove unsupported claims. If the missing fact is essential, ask the customer/agent for verification instead of guessing.",
-     "The core writing, empathy, continuity, formatting, and factual-accuracy requirements are defined in the SKIMS writing instructions above; apply them together with the grounding safeguards immediately above.",
-    "",
-    "SELECTED RESPONSE FORMAT: " + String(mode || "email").toUpperCase(),
-    mode === "none"
-      ? "No channel format is selected. Follow the agent's requested deliverable and formatting without imposing Email, SMS, or Live Chat conventions."
-      : "Apply the selected format's exact opening, structure, and channel-specific requirements from the instructions above. For customer-facing drafts, prioritize a thoughtful, personalized, complete response over a bare status update."
+    "SELECTED RESPONSE FORMAT: " + String(mode || "email").toUpperCase()
   ].join("\n");
 }
 
@@ -1817,14 +1840,22 @@ Do not include explanations, labels, or commentary.
       // Keep each request within the shared Groq TPM budget. The compact
       // Insight summary preserves overall history; recent transcript text carries
       // exact wording and the latest developments into the draft.
-      const customerContext = String(body.customerContext || "").slice(-8000);
+      const hasCaseInsight = body.caseInsight &&
+        typeof body.caseInsight === "object" &&
+        Boolean(String(body.caseInsight.summary || body.caseInsight.customerConcern || "").trim());
+
+      // The Insight digest represents the full imported history. When it is
+      // available, send a smaller exact transcript tail for wording and recent
+      // developments. If Insight is not ready, retain a larger transcript tail.
+      const customerContext = String(body.customerContext || "")
+        .slice(-(hasCaseInsight ? 5000 : 8000));
       const confirmedResolution = String(body.confirmedResolution || "").slice(-3500);
       const sizingGuidance = String(body.sizingGuidance || "").slice(0, 1200);
-      const caseInsight = body.caseInsight && typeof body.caseInsight === "object"
+      const caseInsight = hasCaseInsight
         ? {
-            summary: String(body.caseInsight.summary || "").slice(0, 1400),
-            customerConcern: String(body.caseInsight.customerConcern || "").slice(0, 900),
-            suggestedResolution: String(body.caseInsight.suggestedResolution || "").slice(0, 1100)
+            summary: String(body.caseInsight.summary || "").slice(0, 700),
+            customerConcern: String(body.caseInsight.customerConcern || "").slice(0, 500),
+            suggestedResolution: String(body.caseInsight.suggestedResolution || "").slice(0, 300)
           }
         : null;
 

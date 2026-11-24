@@ -1433,12 +1433,15 @@ async function sendWorkspaceMessage(card, t) {
   saveTicketData();
   renderWorkspaceChat(card, t);
 
-  const previousDraft = [...t.chat].reverse().find(m => m.role === "assistant" && !m.error)?.content || "";
+  const revisionRequest = /\b(?:revise|rewrite|reword|edit|polish|shorten|expand|rework|change it|adjust it|make it (?:more|less|shorter|longer|warmer|friendlier|more professional|more empathetic)|the previous draft|the previous response|the last draft|the last response|your last response|your previous response|this draft|that draft|this response|that response)\b/i.test(command);
+  const previousDraft = revisionRequest
+    ? [...t.chat].reverse().find(m => m.role === "assistant" && !m.error)?.content || ""
+    : "";
   const agentInstructions = [
     t.resolution ? "EXISTING AGENT NOTES / SIZING CONTEXT:\\n" + t.resolution.slice(-1800) : "",
     "CURRENT AGENT INSTRUCTION:",
     command,
-    previousDraft ? "\\nPREVIOUS AI DRAFT TO USE AS CONTEXT (revise it only if the current instruction asks for a revision):\\n" + previousDraft.slice(-2500) : ""
+    previousDraft ? "\\nPREVIOUS AI DRAFT TO USE AS CONTEXT (revise it only if the current instruction asks for a revision):\\n" + previousDraft.slice(-1600) : ""
   ].filter(Boolean).join("\\n");
 
   try {
