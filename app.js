@@ -1433,7 +1433,7 @@ async function sendWorkspaceMessage(card, t) {
   saveTicketData();
   renderWorkspaceChat(card, t);
 
-  const previousDraft = [...t.chat].reverse().find(m => m.role === "assistant")?.content || "";
+  const previousDraft = [...t.chat].reverse().find(m => m.role === "assistant" && !m.error)?.content || "";
   const agentInstructions = [
     t.resolution ? "EXISTING AGENT NOTES / SIZING CONTEXT:\\n" + t.resolution.slice(-1800) : "",
     "CURRENT AGENT INSTRUCTION:",
