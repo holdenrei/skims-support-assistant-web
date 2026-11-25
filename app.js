@@ -1320,12 +1320,24 @@ function renderWorkspaceChat(card, t) {
 
 function classifyWorkspaceRequest(command) {
   const text = String(command || "").trim();
-  const explicitlyRequestsDraft = /\b(?:draft|write|compose|prepare|generate|create)\b.{0,70}\b(?:response|reply|email|message|customer|sms)\b|\b(?:rewrite|reword|revise|polish|shorten|expand|edit|improve)\b.{0,70}\b(?:draft|response|reply|email|message|it|this|that)\b|\bmake (?:this|it|the draft|the response|the reply) (?:warmer|friendlier|more professional|more empathetic|shorter|clearer)\b/i.test(text);
-  if (explicitlyRequestsDraft) return "draft";
+  if (!text) return "discuss";
 
-  const internalDiscussion = /^(?:what|why|how|when|where|which|who|is|are|am|was|were|does|do|did|can|could|would|should|will|has|have|had)\b|\b(?:explain|compare|evaluate|analy[sz]e|assess|review|think through|help me understand|what other options|your recommendation|does this|is this|should we|what do you think)\b/i.test(text)
-    || /\?\s*$/.test(text);
-  return internalDiscussion ? "discuss" : "draft";
+  // Draft only when the agent clearly asks for customer-facing wording.
+  // Merely mentioning a customer, response, or message is not enough.
+  const explicitCustomerOutput =
+    /\b(?:draft|write|compose|prepare|generate|create|craft|produce)\b.{0,100}\b(?:customer[- ]facing|customer|client|reply|response|email|sms|live chat|chat message)\b/i.test(text) ||
+    /\b(?:reply|respond|write back|send a message)\s+(?:to|for)\s+(?:the\s+)?(?:customer|client)\b/i.test(text) ||
+    /\b(?:customer|client)\s+(?:reply|response|email|sms|message)\b.{0,50}\b(?:draft|write|compose|prepare|generate|create|craft)\b/i.test(text) ||
+    /\bturn\s+(?:this|that|it)\s+into\s+(?:a\s+)?(?:customer[- ]facing\s+)?(?:reply|response|email|message)\b/i.test(text) ||
+    /\b(?:revise|rewrite|reword|polish|shorten|expand|edit|improve|adjust|change)\b.{0,80}\b(?:draft|customer reply|customer response|email|sms|message|previous response|previous reply|last response|last reply|this response|that response|this reply|that reply)\b/i.test(text) ||
+    /\bmake\s+(?:this|it|the\s+(?:draft|response|reply|email|message))\s+(?:warmer|friendlier|more professional|more empathetic|shorter|clearer|more concise|less formal)\b/i.test(text);
+
+  if (explicitCustomerOutput) return "draft";
+
+  // Internal conversation is the safe default. Questions, acknowledgements,
+  // thanks, corrections, and discussion must never become customer drafts
+  // just because they do not match a question-word pattern.
+  return "discuss";
 }
 
 async function sendWorkspaceMessage(card, t) {
