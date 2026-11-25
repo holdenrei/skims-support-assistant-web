@@ -1334,11 +1334,11 @@ function renderWorkspaceChat(card, t) {
 
 function classifyWorkspaceRequest(command) {
   const text = String(command || "").trim();
-  const explicitlyRequestsDraft = /\\b(?:draft|write|compose|prepare|generate|create)\\b.{0,70}\\b(?:response|reply|email|message|customer|sms)\\b|\\b(?:rewrite|reword|revise|polish|shorten|expand|edit)\\b.{0,70}\\b(?:draft|response|reply|email|message|it|this|that)\\b|\\bmake (?:this|it) (?:warmer|friendlier|more professional|more empathetic|shorter|clearer)\\b/i.test(text);
+  const explicitlyRequestsDraft = /\b(?:draft|write|compose|prepare|generate|create)\b.{0,70}\b(?:response|reply|email|message|customer|sms)\b|\b(?:rewrite|reword|revise|polish|shorten|expand|edit)\b.{0,70}\b(?:draft|response|reply|email|message|it|this|that)\b|\bmake (?:this|it) (?:warmer|friendlier|more professional|more empathetic|shorter|clearer)\b/i.test(text);
   if (explicitlyRequestsDraft) return "draft";
 
-  const internalDiscussion = /^(?:what|why|how|when|where|which|who|is|are|am|was|were|does|do|did|can|could|would|should|will|has|have|had)\\b|\\b(?:explain|compare|evaluate|analy[sz]e|assess|review|think through|help me understand|what other options|your recommendation|does this|is this|should we|what do you think)\\b/i.test(text)
-    || /\\?\\s*$/.test(text);
+  const internalDiscussion = /^(?:what|why|how|when|where|which|who|is|are|am|was|were|does|do|did|can|could|would|should|will|has|have|had)\b|\b(?:explain|compare|evaluate|analy[sz]e|assess|review|think through|help me understand|what other options|your recommendation|does this|is this|should we|what do you think)\b/i.test(text)
+    || /\?\s*$/.test(text);
   return internalDiscussion ? "discuss" : "draft";
 }
 
