@@ -818,6 +818,49 @@ function validateDraftGrounding(draft, customerContext, confirmedResolution, siz
   return { ok: true };
 }
 
+
+// Deterministic, zero-extra-token validation of the mandatory SKIMS email opening.
+// Invalid drafts are blocked before they can be displayed or copied.
+function validateEmailOpening(draft, customerContext, confirmedResolution) {
+  const notes = String(confirmedResolution || "");
+  const context = String(customerContext || "");
+  const text = String(draft || "").trim();
+  if (!text) return { ok: false, reason: "The AI returned an empty email." };
+
+  // Internal team messages are not customer-facing emails, even if Email is selected.
+  if (/\\b(?:internal team|inquiry team|warehouse team|internal handoff|message to the team|for the team)\\b/i.test(notes)) {
+    return { ok: true };
+  }
+
+  // Only treat the case as an ongoing email when an earlier AGENT message
+  // already contains the required SKIMS email introduction.
+  const priorAgentOpening =
+    /(?:^|\\n)Agent(?:\\s+·[^\\n]*)?:[\\s\\S]{0,1800}?Thank you for contacting SKIMS!/i.test(context);
+
+  const lines = text.split(/\\r?\\n/).map(line => line.trim()).filter(Boolean);
+  if (!lines.length) return { ok: false, reason: "The email is empty." };
+
+  const startsWithUnderstanding = /^I understand\\b/i.test(lines[0]);
+  if (priorAgentOpening) {
+    return startsWithUnderstanding
+      ? { ok: true }
+      : { ok: false, reason: "For an ongoing email exchange, the first substantive sentence must begin with a personalized 'I understand...' acknowledgment." };
+  }
+
+  const validGreeting = /^(?:Hi|Hello)\\s+[^,]+,\\s*$/i.test(lines[0]);
+  if (!validGreeting) {
+    return { ok: false, reason: "A first customer-facing email must begin with 'Hi [Customer Name],' or 'Hello [Customer Name],' (use 'Hi there,' when the name is unavailable)." };
+  }
+  if (lines[1] !== "Thank you for contacting SKIMS!") {
+    return { ok: false, reason: "The line immediately after the greeting must be exactly 'Thank you for contacting SKIMS!'." };
+  }
+  if (!/^I understand\\b/i.test(lines[2] || "")) {
+    return { ok: false, reason: "The first substantive sentence immediately after the required introduction must begin with a personalized 'I understand...' acknowledgment." };
+  }
+
+  return { ok: true };
+}
+
 // =====================================
 // GROQ API WITH RETRY
 // =====================================
@@ -1954,6 +1997,22 @@ Generate only the requested deliverable.`;
         typeof choice?.message?.content === "string"
           ? choice.message.content.trim()
           : "";
+
+      if (mode === "email") {
+        const openingCheck = validateEmailOpening(
+          email,
+          customerContext,
+          confirmedResolution
+        );
+        if (!openingCheck.ok) {
+          console.warn("Email opening blocked by local format check:", openingCheck.reason);
+          throw new Error(
+            "Draft blocked by the mandatory SKIMS email-format check: " +
+            openingCheck.reason +
+            " Please regenerate or revise the opening before using this response."
+          );
+        }
+      }
 
       const groundingCheck = validateDraftGrounding(
         email,
