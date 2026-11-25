@@ -185,15 +185,22 @@ function restoreTicketData() {
       t.insightChat = Array.isArray(item.insightChat) ? item.insightChat : [];
       // Move identifiable internal-chat turns out of the drafting history.
       const migratedIndexes = new Set();
+      const addMigratedInsightMessage = message => {
+        const duplicate = t.insightChat.some(existing =>
+          existing.role === message.role &&
+          existing.content === message.content &&
+          Number(existing.timestamp || 0) === Number(message.timestamp || 0)
+        );
+        if (!duplicate) t.insightChat.push(message);
+      };
       t.chat.forEach((message, index) => {
         if (message && message.role === "assistant" && message.kind === "discuss") {
           const previous = t.chat[index - 1];
           if (previous && previous.role === "user") {
-            t.insightChat.push(previous, message);
+            addMigratedInsightMessage(previous);
             migratedIndexes.add(index - 1);
-          } else {
-            t.insightChat.push(message);
           }
+          addMigratedInsightMessage(message);
           migratedIndexes.add(index);
         }
       });
