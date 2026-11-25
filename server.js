@@ -1640,11 +1640,21 @@ OUTPUT REQUIREMENTS:
 Return ONLY valid JSON with exactly these three string keys:
 {
   "summary": "A concise account of the overall conversation and important actions already completed. Preserve the sequence where it matters.",
-  "customerConcern": "The customer's actual current unresolved concern, stated plainly.",
+  "customerConcern": "A detailed but focused summary of the customer's current concern and relevant case context, followed by the exact metadata lines shown below.",
   "suggestedResolution": "The single most appropriate next handling recommendation. Combine the former recommended next step and resolution here. Clearly separate completed actions from actions still required. Apply relevant SKIMS policy without exposing internal-only procedures in customer-facing wording."
 }
 
-Do NOT return recommendedNextStep or missingInformation. Do not create a separate verification checklist. Do not include headings inside the JSON values. If the conversation does not establish a fact, do not state it as fact.
+CUSTOMER CONCERN FIELD FORMAT:
+- Make customerConcern more informative than a one-line issue label. Summarize what happened, what the customer wants or expects, relevant product/order/shipping/payment/return details, what has already been explained or completed, and what remains unresolved. Keep it factual and focused.
+- After the narrative summary, always add these two lines in this exact order:
+Order number: [exact order number, or "Not provided"]
+Email address: [exact customer email address, or "Not provided"]
+- Include an order number only when it is explicitly present in the conversation or agent notes. SKIMS order numbers commonly begin with "SB"; preserve the full exact value and do not mistake tracking numbers, ticket IDs, or other references for an order number.
+- Include the customer's email address only when explicitly provided in the conversation or agent notes. Preserve it exactly; do not infer it from a name or fabricate one.
+- If multiple order numbers or email addresses are explicitly associated with this case, include the relevant ones without guessing which is correct; briefly indicate if clarification is needed.
+- Do not omit either metadata line, even when the value is "Not provided".
+
+Do NOT return recommendedNextStep or missingInformation. Do not create a separate verification checklist. Do not include headings inside the JSON values other than the two required metadata lines in customerConcern. If the conversation does not establish a fact, do not state it as fact.
 `;
 
         const analysisConversation = await prepareInsightConversation(customerContext);
