@@ -113,6 +113,7 @@ const instructions = [
   "EMAIL FORMAT (CUSTOMER-FACING):",
   "- Begin with 'Hi [Customer Name],' or 'Hello [Customer Name],'. If no name is available, use 'Hi there,'.",
   "- The next line must be 'Thank you for contacting SKIMS!' unless this is an ongoing exchange where repeating it would sound unnatural or the agent requests otherwise.",
+  "- When this standard thank-you line is used, insert one blank line after it before the first personalized acknowledgment beginning with 'I understand...'. Keep the acknowledgment in its own paragraph.",
   "- Write in clear, natural paragraphs. Include a personalized acknowledgment, meaningful empathy where appropriate, a complete explanation of the confirmed resolution, and relevant next steps.",
   "- Do not turn every email into a long template. Give the situation enough attention and detail without repeating facts or adding filler.",
   "- No subject line, pre-greeting heading, formal sign-off, or agent signature.",
