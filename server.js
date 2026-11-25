@@ -2031,6 +2031,7 @@ ${sizingGuidance || "No sizing calculation provided."}
 
 IMPORTANT GUIDANCE:
 - Follow the agent's intended handling and instructions about what to include, exclude, emphasize, and how to communicate it.
+- If the agent explicitly asks to reiterate, repeat, or restate the latest agent reply, identify the most recent Agent message in the conversation and restate its substance faithfully. Do not add a new greeting or standard email introduction unless the agent asks for a new email draft. Do not invent a different resolution or add new commitments.
 - Do not assume a return, exchange, or refund is the appropriate resolution, and do not present those options as a default or exhaustive list. The applicable SKIMS policy and confirmed case facts determine the appropriate handling.
 - Do not introduce a remedy, investigation, SKU check, escalation, follow-up, approval, processing action, timeline, or outcome unless it is supported by the agent's instructions, confirmed case information, or supplied policy.
 - Clearly distinguish the customer's requested outcome from what is eligible, approved, pending, or completed. A requested remedy is not an approved remedy.
