@@ -1647,13 +1647,12 @@ Return ONLY valid JSON with exactly these three string keys:
 
 CUSTOMER CONCERN FIELD FORMAT:
 - Make customerConcern more informative than a one-line issue label. Summarize what happened, what the customer wants or expects, relevant product/order/shipping/payment/return details, what has already been explained or completed, and what remains unresolved. Keep it factual and focused.
-- After the narrative summary, always add these two lines in this exact order:
+- After the narrative summary, add exactly one blank line, then a single metadata line in this format:
 Order number: [exact order number, or "Not provided"]
-Email address: [exact customer email address, or "Not provided"]
 - Include an order number only when it is explicitly present in the conversation or agent notes. SKIMS order numbers commonly begin with "SB"; preserve the full exact value and do not mistake tracking numbers, ticket IDs, or other references for an order number.
-- Include the customer's email address only when explicitly provided in the conversation or agent notes. Preserve it exactly; do not infer it from a name or fabricate one.
-- If multiple order numbers or email addresses are explicitly associated with this case, include the relevant ones without guessing which is correct; briefly indicate if clarification is needed.
-- Do not omit either metadata line, even when the value is "Not provided".
+- Do not include the customer's email address or any email-address metadata in customerConcern.
+- If multiple order numbers are explicitly associated with this case, include the relevant ones without guessing which is correct; briefly indicate if clarification is needed.
+- Keep exactly one blank line between the narrative summary and the Order number line. Do not add extra metadata lines or headings.
 
 Do NOT return recommendedNextStep or missingInformation. Do not create a separate verification checklist. Do not include headings inside the JSON values other than the two required metadata lines in customerConcern. If the conversation does not establish a fact, do not state it as fact.
 `;
