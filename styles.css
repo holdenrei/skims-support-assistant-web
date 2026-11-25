@@ -3399,3 +3399,26 @@ html[data-theme="dark"] .message-attachment,
 html[data-theme="dark"] .attachment-chip {
   color: #d7b8c4;
 }
+
+
+/* AI Workspace response actions */
+.workspace-message-actions {
+  gap: 4px;
+}
+.workspace-regenerate svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.workspace-regenerate:hover:not(:disabled) {
+  background: #f1eeec;
+  color: var(--accent-dark);
+}
+.workspace-regenerate:disabled {
+  opacity: .45;
+  cursor: wait;
+}
