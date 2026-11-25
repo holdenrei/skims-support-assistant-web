@@ -863,6 +863,40 @@ function validateEmailOpening(draft, customerContext, confirmedResolution) {
   return { ok: true };
 }
 
+
+// Deterministically enforce the required blank-line spacing in first customer-facing emails.
+// This is local formatting only; it does not make another AI request or alter the message body.
+function normalizeEmailOpeningSpacing(draft, customerContext, confirmedResolution) {
+  const text = String(draft || "").trim();
+  const notes = String(confirmedResolution || "");
+  const context = String(customerContext || "");
+
+  if (/\\b(?:internal team|inquiry team|warehouse team|internal handoff|message to the team|for the team)\\b/i.test(notes)) {
+    return text;
+  }
+
+  const priorAgentOpening =
+    /(?:^|\\n)Agent(?:\\s+·[^\\n]*)?:[\\s\\S]{0,1800}?Thank you for contacting SKIMS!/i.test(context);
+  if (priorAgentOpening) return text;
+
+  const lines = text.split(/\\r?\\n/);
+  while (lines.length && !lines[0].trim()) lines.shift();
+  if (lines.length < 3) return text;
+
+  const greeting = lines.shift().trim();
+  if (!/^(?:Hi|Hello)\\s+[^,]+,$/i.test(greeting)) return text;
+
+  while (lines.length && !lines[0].trim()) lines.shift();
+  const thankYou = lines.shift()?.trim() || "";
+  if (thankYou !== "Thank you for contacting SKIMS!") return text;
+
+  while (lines.length && !lines[0].trim()) lines.shift();
+  const body = lines.join("\\n").replace(/^\\s+/, "");
+  if (!/^I understand\\b/i.test(body)) return text;
+
+  return greeting + "\\n\\n" + thankYou + "\\n\\n" + body;
+}
+
 // =====================================
 // GROQ API WITH RETRY
 // =====================================
@@ -2012,12 +2046,13 @@ Generate only the requested deliverable.`;
       }
 
       const choice = result.choices?.[0];
-      const email =
+      let email =
         typeof choice?.message?.content === "string"
           ? choice.message.content.trim()
           : "";
 
       if (mode === "email") {
+        email = normalizeEmailOpeningSpacing(email, customerContext, confirmedResolution);
         const openingCheck = validateEmailOpening(
           email,
           customerContext,
