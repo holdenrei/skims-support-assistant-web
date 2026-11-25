@@ -1340,6 +1340,8 @@ function classifyWorkspaceRequest(command) {
   const explicitCustomerOutput =
     /\b(?:draft|write|compose|prepare|generate|create|craft|produce)\b.{0,100}\b(?:customer[- ]facing|customer|client|reply|response|email|sms|live chat|chat message)\b/i.test(text) ||
     /\b(?:reply|respond|write back|send a message)\s+(?:to|for)\s+(?:the\s+)?(?:customer|client)\b/i.test(text) ||
+    /\b(?:inform|tell|ask|request|advise|notify|let)\s+(?:the\s+)?(?:customer|client|cx)\b.{0,120}\b(?:to|that|about|whether|if)\b/i.test(text) ||
+    /\b(?:customer|client|cx)\b.{0,80}\b(?:to provide|to send|to resend|to submit|to confirm|to check|to contact|to know)\b/i.test(text) ||
     /\b(?:customer|client)\s+(?:reply|response|email|sms|message)\b.{0,50}\b(?:draft|write|compose|prepare|generate|create|craft)\b/i.test(text) ||
     /\bturn\s+(?:this|that|it)\s+into\s+(?:a\s+)?(?:customer[- ]facing\s+)?(?:reply|response|email|message)\b/i.test(text) ||
     /\b(?:revise|rewrite|reword|polish|shorten|expand|edit|improve|adjust|change)\b.{0,80}\b(?:draft|customer reply|customer response|email|sms|message|previous response|previous reply|last response|last reply|this response|that response|this reply|that reply)\b/i.test(text) ||
