@@ -646,7 +646,7 @@ CUSTOMER EXPERIENCE:
 FACTUAL AND POLICY SAFEGUARDS:
 - Never invent or imply unverified policies, product details, measurements, stock, tracking events, delivery dates, refunds, credits, replacements, approvals, investigations, completed actions, timelines, or promises.
 - Preserve supplied names, order numbers, products, colors, sizes, amounts, dates, and timelines exactly.
-- For order edits/cancellations/size changes, do not promise a change without confirmed order status, eligibility, and policy.
+- For order edits/cancellations/size changes, do not promise that an action has been or will definitely be completed without confirmed order status, eligibility, and policy. When the agent asks you to present cancellation or an order change as a possible option but eligibility is not yet confirmed, you may explain it conditionally (for example: "If the order has not shipped and cancellation is still available after we verify its status, we can help with the cancellation and applicable refund"). Keep the condition explicit in the same sentence as the option. Never imply that an action is approved, completed, or guaranteed before confirmation.
 - Use only relevant supplied SOPs below. Keep internal macros, tags, forms, Slack steps, and warehouse procedures out of customer-facing copy.
 - Never promise international reshipment. SKIMS Support cannot contact a carrier on the customer's behalf. Apply carrier guidance only when tracking/package status makes it relevant.
 - If facts conflict or an essential fact is missing, flag it or use careful wording rather than guessing.
@@ -774,14 +774,32 @@ function validateDraftGrounding(draft, customerContext, confirmedResolution, siz
   }
 
   const modificationPromisePattern =
-    /\b(?:we can|i can|we will|we'll|i will|i'll)\s+(?:(?:update|change|modify|switch|cancel)\b[^.!?]{0,100}\b(?:order|size|item|purchase)\b|make (?:that|the|this) (?:order )?(?:change|edit|modification)\b)/i;
+    /\b(?:we can|i can|we will|we'll|i will|i'll)\s+(?:(?:update|change|modify|switch|cancel)\b[^.!?]{0,100}\b(?:order|size|item|purchase)\b|make (?:that|the|this) (?:order )?(?:change|edit|modification)\b)/gi;
 
   const confirmedModification = /\b(?:unfulfilled|not shipped|has not shipped|haven't shipped|hasn't shipped|modification approved|approved (?:the )?(?:order )?(?:change|edit|modification)|eligible for (?:an? )?(?:order )?(?:change|edit|modification)|confirmed (?:the )?(?:order )?(?:change|edit|modification)|order (?:can|may) be modified)\b/i.test(confirmedResolution || "");
 
-  if (modificationPromisePattern.test(draft) && !confirmedModification) {
+  // A conditional option is safe to communicate before eligibility is known,
+  // provided the same sentence explicitly makes it subject to order status
+  // or cancellation eligibility being confirmed.
+  const conditionalEligibilityPattern =
+    /\b(?:if|once|after|provided that|subject to)\b[^.!?]{0,220}\b(?:order (?:has not|hasn't|is not|isn't) shipped|unfulfilled|cancellation (?:is|remains) (?:available|eligible)|eligible for cancellation|cancellation eligibility|confirm(?:ing)? (?:the )?(?:order )?status)\b/i;
+
+  const draftText = String(draft || "");
+  const modificationPromises = [...draftText.matchAll(modificationPromisePattern)];
+  const hasUnqualifiedModificationPromise = modificationPromises.some(match => {
+    const start = draftText.lastIndexOf(".", match.index) + 1;
+    const endCandidates = [".", "!", "?"]
+      .map(mark => draftText.indexOf(mark, match.index))
+      .filter(index => index !== -1);
+    const end = endCandidates.length ? Math.min(...endCandidates) : draftText.length;
+    const sentence = draftText.slice(start, end + 1);
+    return !conditionalEligibilityPattern.test(sentence);
+  });
+
+  if (hasUnqualifiedModificationPromise && !confirmedModification) {
     return {
       ok: false,
-      reason: "The generated draft appears to promise an order modification without explicit confirmation of eligibility and order status in the agent's confirmed findings."
+      reason: "The generated draft appears to promise an order modification without explicit confirmation of eligibility and order status. Any cancellation or order-change option must be clearly conditional on verifying that it is available for this order."
     };
   }
 
