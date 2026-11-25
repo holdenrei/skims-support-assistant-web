@@ -962,14 +962,17 @@ async function callGroqConversationWithRetry(
   messages,
   systemInstruction
 ) {
-  const delays = [1500, 3000];
+  // A 429 can include a precise retry interval in its response body.
+  // Honour that interval instead of retrying on fixed delays that may
+  // repeatedly collide with the organization's shared TPM window.
+  const fallbackDelays = [1500, 3000];
   const completionTokenLimit = getSafeCompletionTokenLimit(
     systemInstruction,
     JSON.stringify(messages),
     700
   );
 
-  for (let attempt = 0; attempt <= delays.length; attempt++) {
+  for (let attempt = 0; attempt <= fallbackDelays.length; attempt++) {
     console.log(`Groq conversation attempt ${attempt + 1}/3`);
 
     let response;
@@ -1002,25 +1005,30 @@ async function callGroqConversationWithRetry(
         }
       );
     } catch (err) {
-      if (attempt === delays.length) throw err;
+      if (attempt === fallbackDelays.length) throw err;
 
       await new Promise(resolve =>
-        setTimeout(resolve, delays[attempt])
+        setTimeout(resolve, fallbackDelays[attempt])
       );
-
       continue;
     }
 
     if (
       ![429, 500, 502, 503, 504].includes(response.status) ||
-      attempt === delays.length
+      attempt === fallbackDelays.length
     ) {
       return response;
     }
 
-    await new Promise(resolve =>
-      setTimeout(resolve, delays[attempt])
+    const retryDelay = response.status === 429
+      ? await getGroqRetryDelay(response, fallbackDelays[attempt])
+      : fallbackDelays[attempt];
+
+    console.log(
+      `Groq conversation returned ${response.status}; retrying in ${retryDelay}ms.`
     );
+
+    await new Promise(resolve => setTimeout(resolve, retryDelay));
   }
 }
 
