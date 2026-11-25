@@ -3518,3 +3518,60 @@ html[data-theme="dark"] .insight-chat-context, html[data-theme="dark"] .insight-
 
 /* Keep Insight analysis independently scrollable. */
 .insight-content { flex: 1 1 auto; }
+
+
+/* Chat with AI: interactive floating window, including narrow side-panel layouts. */
+.insight-widget { pointer-events: none; }
+.insight-widget > .insight-chat-panel {
+  pointer-events: auto !important;
+  position: fixed !important;
+  z-index: 1200 !important;
+  box-sizing: border-box;
+  width: min(390px, calc(100vw - 16px));
+  height: min(480px, calc(100vh - 16px));
+  min-width: min(280px, calc(100vw - 16px));
+  min-height: min(250px, calc(100vh - 16px));
+  max-width: calc(100vw - 16px);
+  max-height: calc(100vh - 16px);
+  overflow: hidden;
+  resize: both !important;
+}
+.insight-chat-panel[hidden] { display: none !important; }
+.insight-chat-panel .insight-chat-head {
+  cursor: move !important;
+  touch-action: none !important;
+  user-select: none !important;
+}
+.insight-chat-panel .insight-chat-close {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
+  pointer-events: auto !important;
+  cursor: pointer;
+}
+.insight-chat-panel .insight-chat-messages {
+  min-width: 0;
+  min-height: 0;
+}
+.insight-chat-panel .insight-chat-composer { min-width: 0; }
+@media (max-width: 780px) {
+  .insight-widget > .insight-chat-panel {
+    right: 8px !important;
+    bottom: 8px !important;
+    left: auto;
+    top: auto;
+    width: min(390px, calc(100vw - 16px));
+    height: min(62vh, 520px);
+    min-width: min(280px, calc(100vw - 16px));
+    min-height: min(220px, calc(100vh - 16px));
+  }
+}
+@media (max-width: 560px) {
+  .insight-widget > .insight-chat-panel {
+    right: 8px !important;
+    bottom: 8px !important;
+    width: calc(100vw - 16px);
+    height: min(70vh, 520px);
+    min-width: 0;
+  }
+}
