@@ -1320,7 +1320,7 @@ function renderWorkspaceChat(card, t) {
 
 function classifyWorkspaceRequest(command) {
   const text = String(command || "").trim();
-  const explicitlyRequestsDraft = /\b(?:draft|write|compose|prepare|generate|create)\b.{0,70}\b(?:response|reply|email|message|customer|sms)\b|\b(?:rewrite|reword|revise|polish|shorten|expand|edit)\b.{0,70}\b(?:draft|response|reply|email|message|it|this|that)\b|\bmake (?:this|it) (?:warmer|friendlier|more professional|more empathetic|shorter|clearer)\b/i.test(text);
+  const explicitlyRequestsDraft = /\b(?:draft|write|compose|prepare|generate|create)\b.{0,70}\b(?:response|reply|email|message|customer|sms)\b|\b(?:rewrite|reword|revise|polish|shorten|expand|edit|improve)\b.{0,70}\b(?:draft|response|reply|email|message|it|this|that)\b|\bmake (?:this|it|the draft|the response|the reply) (?:warmer|friendlier|more professional|more empathetic|shorter|clearer)\b/i.test(text);
   if (explicitlyRequestsDraft) return "draft";
 
   const internalDiscussion = /^(?:what|why|how|when|where|which|who|is|are|am|was|were|does|do|did|can|could|would|should|will|has|have|had)\b|\b(?:explain|compare|evaluate|analy[sz]e|assess|review|think through|help me understand|what other options|your recommendation|does this|is this|should we|what do you think)\b/i.test(text)
@@ -1350,8 +1350,14 @@ async function sendWorkspaceMessage(card, t) {
   const requestType = classifyWorkspaceRequest(command);
   const revisionRequest = /\b(?:revise|rewrite|reword|edit|polish|shorten|expand|rework|change it|adjust it|make it (?:more|less|shorter|longer|warmer|friendlier|more professional|more empathetic)|the previous draft|the previous response|the last draft|the last response|your last response|your previous response|this draft|that draft|this response|that response)\b/i.test(command);
   const previousDraft = revisionRequest
-    ? [...t.chat.slice(0, -1)].reverse().find(m => m.role === "assistant" && !m.error)?.content || ""
+    ? (t.output || [...t.chat.slice(0, -1)].reverse().find(m => m.role === "assistant" && m.kind === "draft" && !m.error)?.content || "")
     : "";
+  const recentWorkspaceDiscussion = t.chat
+    .slice(0, -1)
+    .slice(-6)
+    .map(m => (m.role === "user" ? "Agent" : "AI") + ": " + String(m.content || "").slice(-350))
+    .join("\n")
+    .slice(-1800);
 
   try {
     let reply = "";
@@ -1391,7 +1397,7 @@ async function sendWorkspaceMessage(card, t) {
     }
 
     if (!reply.trim()) throw new Error("The AI returned an empty response.");
-    t.chat.push({ role: "assistant", content: reply, timestamp: Date.now() });
+    t.chat.push({ role: "assistant", content: reply, timestamp: Date.now(), kind: requestType });
     t.chatError = "";
   } catch (error) {
     t.chatError = error.message || "Unable to process your message.";
