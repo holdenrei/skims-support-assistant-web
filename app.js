@@ -1348,7 +1348,7 @@ async function sendWorkspaceMessage(card, t) {
   renderWorkspaceChat(card, t);
 
   const requestType = classifyWorkspaceRequest(command);
-  const revisionRequest = /\\b(?:revise|rewrite|reword|edit|polish|shorten|expand|rework|change it|adjust it|make it (?:more|less|shorter|longer|warmer|friendlier|more professional|more empathetic)|the previous draft|the previous response|the last draft|the last response|your last response|your previous response|this draft|that draft|this response|that response)\\b/i.test(command);
+  const revisionRequest = /\b(?:revise|rewrite|reword|edit|polish|shorten|expand|rework|change it|adjust it|make it (?:more|less|shorter|longer|warmer|friendlier|more professional|more empathetic)|the previous draft|the previous response|the last draft|the last response|your last response|your previous response|this draft|that draft|this response|that response)\b/i.test(command);
   const previousDraft = revisionRequest
     ? [...t.chat.slice(0, -1)].reverse().find(m => m.role === "assistant" && !m.error)?.content || ""
     : "";
