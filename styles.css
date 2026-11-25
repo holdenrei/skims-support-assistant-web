@@ -3473,33 +3473,48 @@ html[data-theme="dark"] .insight-chat-close:hover {
 
 
 /* =========================================
-   INTERNAL AI CHAT INSIDE CASE INSIGHT
+   INDEPENDENT FLOATING INTERNAL AI CHAT
 ========================================= */
-.insight-internal-chat { flex: none; }
+.insight-actions { justify-content: space-between; align-items: center; }
 .insight-chat-toggle { display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 8px 11px; border: 1px solid var(--rose-dark); border-radius: 8px; background: var(--rose); color: var(--accent-dark); text-align: center; font: inherit; font-size: 11px; font-weight: 650; line-height: 1.4; cursor: pointer; transition: background .2s ease, border-color .2s ease; }
 .insight-chat-toggle:hover { background: var(--rose-hover); border-color: var(--accent); }
-.insight-chat-panel { display: flex; flex-direction: column; gap: 8px; padding-top: 9px; }
+.insight-chat-panel {
+  position: fixed; z-index: 1100; right: 390px; bottom: 78px;
+  display: flex; flex-direction: column; gap: 9px;
+  width: min(390px, calc(100vw - 24px)); height: min(480px, calc(100vh - 32px));
+  min-width: 280px; min-height: 250px; max-width: calc(100vw - 16px); max-height: calc(100vh - 16px);
+  padding: 13px; overflow: auto; resize: both;
+  border: 1px solid #e7d8d5; border-radius: 15px; background: #fffdfc;
+  color: #44383c; box-shadow: 0 16px 45px rgba(55,35,40,.24);
+}
 .insight-chat-panel[hidden] { display: none !important; }
-.insight-chat-context { color: var(--muted); font-size: 9px; line-height: 1.45; }
-.insight-chat-messages { display: flex; flex-direction: column; gap: 8px; max-height: 210px; min-height: 54px; overflow-y: auto; padding: 2px; }
-.insight-chat-empty { margin: auto; color: var(--muted); font-size: 10px; line-height: 1.5; text-align: center; }
-.insight-chat-message { max-width: 94%; padding: 8px 10px; border-radius: 10px; background: #f4eeec; color: #4b4144; overflow-wrap: anywhere; }
+.insight-chat-head { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-bottom: 9px; border-bottom: 1px solid #f0e7e5; cursor: move; touch-action: none; user-select: none; }
+.insight-chat-head strong { display: block; font-size: 13px; color: #382f35; }
+.insight-chat-head small { display: block; margin-top: 3px; color: #97898b; font-size: 10px; }
+.insight-chat-context { flex: none; color: var(--muted); font-size: 10px; line-height: 1.45; }
+.insight-chat-messages { display: flex; flex: 1 1 auto; flex-direction: column; gap: 8px; min-height: 70px; overflow-y: auto; padding: 3px; }
+.insight-chat-empty { margin: auto; color: var(--muted); font-size: 11px; line-height: 1.5; text-align: center; }
+.insight-chat-message { max-width: 94%; padding: 9px 11px; border-radius: 10px; background: #f4eeec; color: #4b4144; overflow-wrap: anywhere; }
 .insight-chat-message.user { align-self: flex-end; background: #725c62; color: #fff; }
-.insight-chat-message strong { display: block; margin-bottom: 3px; font-size: 9px; opacity: .8; }
-.insight-chat-message p { margin: 0; font-size: 10px; line-height: 1.5; white-space: pre-wrap; }
-.insight-chat-typing, .insight-chat-status { margin: 0; color: var(--muted); font-size: 9px; line-height: 1.4; }
+.insight-chat-message strong { display: block; margin-bottom: 3px; font-size: 10px; opacity: .8; }
+.insight-chat-message p { margin: 0; font-size: 11px; line-height: 1.55; white-space: pre-wrap; }
+.insight-chat-typing, .insight-chat-status { flex: none; margin: 0; color: var(--muted); font-size: 10px; line-height: 1.4; }
 .insight-chat-status:empty { display: none; }
-.insight-chat-composer { display: flex; align-items: flex-end; gap: 7px; }
-.insight-chat-input { flex: 1; min-width: 0; resize: vertical; min-height: 38px; max-height: 100px; padding: 8px 9px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface, #fff); color: var(--text); font: inherit; font-size: 10px; box-sizing: border-box; }
-.insight-chat-send { flex: none; padding: 9px 11px; border: 1px solid var(--rose-dark); border-radius: 8px; background: var(--rose); color: var(--accent-dark); font: inherit; font-size: 10px; font-weight: 700; cursor: pointer; }
+.insight-chat-composer { flex: none; display: flex; align-items: flex-end; gap: 7px; }
+.insight-chat-input { flex: 1; min-width: 0; resize: vertical; min-height: 44px; max-height: 130px; padding: 9px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface, #fff); color: var(--text); font: inherit; font-size: 11px; box-sizing: border-box; }
+.insight-chat-send { flex: none; padding: 10px 13px; border: 1px solid var(--rose-dark); border-radius: 8px; background: var(--rose); color: var(--accent-dark); font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
 .insight-chat-send:disabled { opacity: .55; cursor: not-allowed; }
-html[data-theme="dark"] .insight-chat-toggle { background: #30272b; border-color: #514047; color: #ead8dc; }
-html[data-theme="dark"] .insight-chat-toggle:hover { background: #3a2e33; }
+html[data-theme="dark"] .insight-chat-panel { background: #272226; border-color: #514047; color: #eee7e8; }
+html[data-theme="dark"] .insight-chat-head { border-color: #514047; }
+html[data-theme="dark"] .insight-chat-head strong { color: #f1e9eb; }
 html[data-theme="dark"] .insight-chat-message { background: #302b2e; color: #eee7e8; }
 html[data-theme="dark"] .insight-chat-message.user { background: #755e66; color: #fff; }
 html[data-theme="dark"] .insight-chat-input { background: #211d20; color: #f1e9eb; border-color: #51474b; }
 html[data-theme="dark"] .insight-chat-context, html[data-theme="dark"] .insight-chat-empty, html[data-theme="dark"] .insight-chat-status, html[data-theme="dark"] .insight-chat-typing { color: #b9aeb1; }
-@media (max-width: 560px) { .insight-popover { max-height: min(82vh, 680px); } .insight-chat-messages { max-height: 180px; } }
+@media (max-width: 560px) {
+  .insight-popover { max-height: min(82vh, 680px); }
+  .insight-chat-panel { right: 8px; bottom: 8px; width: calc(100vw - 16px); min-width: 0; height: min(70vh, 520px); }
+}
 
-/* Keep Insight analysis scrollable while the embedded internal chat remains visible. */
+/* Keep Insight analysis independently scrollable. */
 .insight-content { flex: 1 1 auto; }
