@@ -2673,10 +2673,16 @@ input:focus {
 /* =========================================
    CONVERSATIONAL WORKSPACE REDESIGN
 ========================================= */
-.legacy-drafting-fields,
-.insight-chat-open,
-.insight-chat-popover {
+.legacy-drafting-fields {
   display: none !important;
+}
+
+/* Internal agent chat is intentionally available under Case Insight. */
+.insight-chat-open {
+  display: inline-flex !important;
+}
+.insight-chat-popover:not([hidden]) {
+  display: flex !important;
 }
 
 .workspace-chat-section {
