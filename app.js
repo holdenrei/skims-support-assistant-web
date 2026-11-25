@@ -690,7 +690,8 @@ function renderInsightChat(card, t) {
 
   panel.hidden = !t.insightChatOpen;
   toggle.setAttribute("aria-expanded", String(t.insightChatOpen));
-  toggle.textContent = t.insightChatOpen ? "− Close Chat with AI" : "✧ Chat with AI";
+  toggle.textContent = "✧ Chat with AI";
+  applyFloatingWindowLayout(panel, t.insightWindowLayout?.chat);
   host.replaceChildren();
 
   if (!t.insightChat.length) {
@@ -954,14 +955,77 @@ function setupInsightLauncherDrag(card, ticket) {
 
 function applyFloatingWindowLayout(panel, layout) {
   if (!panel || !layout) return;
-  if (Number.isFinite(layout.height)) {
-    panel.style.height = `${layout.height}px`;
+  if (Number.isFinite(layout.width)) panel.style.width = `${layout.width}px`;
+  if (Number.isFinite(layout.height)) panel.style.height = `${layout.height}px`;
+  if (Number.isFinite(layout.left)) {
+    panel.style.left = `${layout.left}px`;
+    panel.style.right = "auto";
   }
+  if (Number.isFinite(layout.top)) {
+    panel.style.top = `${layout.top}px`;
+    panel.style.bottom = "auto";
+  }
+}
+
+function setupInsightChatWindowDrag(card, ticket) {
+  const panel = $(card, ".insight-chat-panel");
+  const handle = $(card, "[data-chat-drag-handle]");
+  if (!panel || !handle || handle.dataset.dragReady) return;
+  handle.dataset.dragReady = "true";
+  const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
+  const saved = ticket.insightWindowLayout?.chat;
+  if (saved) applyFloatingWindowLayout(panel, saved);
+
+  let startX = 0, startY = 0, startLeft = 0, startTop = 0;
+  handle.addEventListener("pointerdown", event => {
+    if (event.button !== 0 || event.target.closest("button")) return;
+    const rect = panel.getBoundingClientRect();
+    startX = event.clientX; startY = event.clientY;
+    startLeft = rect.left; startTop = rect.top;
+    handle.setPointerCapture(event.pointerId);
+    panel.style.left = rect.left + "px";
+    panel.style.top = rect.top + "px";
+    panel.style.right = "auto";
+    panel.style.bottom = "auto";
+  });
+  handle.addEventListener("pointermove", event => {
+    if (!handle.hasPointerCapture(event.pointerId)) return;
+    const rect = panel.getBoundingClientRect();
+    const left = clamp(startLeft + event.clientX - startX, 8, window.innerWidth - rect.width - 8);
+    const top = clamp(startTop + event.clientY - startY, 8, window.innerHeight - rect.height - 8);
+    panel.style.left = left + "px";
+    panel.style.top = top + "px";
+  });
+  const finishDrag = event => {
+    if (!handle.hasPointerCapture(event.pointerId)) return;
+    handle.releasePointerCapture(event.pointerId);
+    const rect = panel.getBoundingClientRect();
+    ticket.insightWindowLayout = ticket.insightWindowLayout || {};
+    ticket.insightWindowLayout.chat = {
+      ...(ticket.insightWindowLayout.chat || {}),
+      left: Math.round(rect.left), top: Math.round(rect.top),
+      width: Math.round(rect.width), height: Math.round(rect.height)
+    };
+    saveTicketData();
+  };
+  handle.addEventListener("pointerup", finishDrag);
+  handle.addEventListener("pointercancel", finishDrag);
+
+  window.addEventListener("resize", () => {
+    if (!panel.isConnected) return;
+    const rect = panel.getBoundingClientRect();
+    const left = clamp(rect.left, 8, window.innerWidth - rect.width - 8);
+    const top = clamp(rect.top, 8, window.innerHeight - rect.height - 8);
+    panel.style.left = left + "px";
+    panel.style.top = top + "px";
+  });
 }
 
 function setupFloatingWindowInteractions(card, ticket) {
   [
-    { panel: ".insight-popover", key: "insight" }
+    { panel: ".insight-popover", key: "insight" },
+    { panel: ".insight-chat-panel", key: "chat" }
   ].forEach(({ panel: selector, key }) => {
     const panel = $(card, selector);
     if (!panel || panel.dataset.resizeReady) return;
@@ -974,8 +1038,9 @@ function setupFloatingWindowInteractions(card, ticket) {
         const height = Math.round(panel.getBoundingClientRect().height);
         if (!height || height === lastHeight) return;
         lastHeight = height;
+        const width = Math.round(panel.getBoundingClientRect().width);
         ticket.insightWindowLayout = ticket.insightWindowLayout || {};
-        ticket.insightWindowLayout[key] = { height };
+        ticket.insightWindowLayout[key] = { ...(ticket.insightWindowLayout[key] || {}), width, height };
         saveTicketData();
       });
       observer.observe(panel);
@@ -989,6 +1054,7 @@ function setupFloatingWindowInteractions(card, ticket) {
 function bindCard(card, t) {
   setupFloatingWindowInteractions(card, t);
   setupInsightLauncherDrag(card, t);
+  setupInsightChatWindowDrag(card, t);
 
   $(card, ".conversation-url").addEventListener("input", e => {
     t.url = e.target.value.trim();
@@ -1076,6 +1142,12 @@ function bindCard(card, t) {
     t.insightChatOpen = !t.insightChatOpen;
     saveTicketData();
     render({ focusChat: t.insightChatOpen });
+  });
+
+  $(card, ".insight-chat-close").addEventListener("click", () => {
+    t.insightChatOpen = false;
+    saveTicketData();
+    render();
   });
 
   $(card, ".insight-chat-send").addEventListener("click", () => sendInsightChat(card, t));
