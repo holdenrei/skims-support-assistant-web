@@ -823,6 +823,16 @@ function validateDraftGrounding(draft, customerContext, confirmedResolution, siz
 
 // Deterministic, zero-extra-token validation of the mandatory SKIMS email opening.
 // Invalid drafts are blocked before they can be displayed or copied.
+function isLatestAgentReplyReiteration(customerContext, confirmedResolution) {
+  const instruction = String(confirmedResolution || "");
+  const context = String(customerContext || "");
+  const explicitlyRequestsReiteration =
+    /\b(?:reiterate|repeat|restat(?:e|ing)|summari[sz]e)\b[\s\S]{0,100}\b(?:latest|last|most recent)\s+agent(?:'s)?\s+reply\b/i.test(instruction) ||
+    /\b(?:latest|last|most recent)\s+agent(?:'s)?\s+reply\b[\s\S]{0,100}\b(?:reiterate|repeat|restat(?:e|ing)|summari[sz]e)\b/i.test(instruction);
+  const hasAgentReply = /\bAgent\b/i.test(context);
+  return explicitlyRequestsReiteration && hasAgentReply;
+}
+
 function validateEmailOpening(draft, customerContext, confirmedResolution) {
   const notes = String(confirmedResolution || "");
   const context = String(customerContext || "");
@@ -831,6 +841,12 @@ function validateEmailOpening(draft, customerContext, confirmedResolution) {
 
   // Internal team messages are not customer-facing emails, even if Email is selected.
   if (/\b(?:internal team|inquiry team|warehouse team|internal handoff|message to the team|for the team)\b/i.test(notes)) {
+    return { ok: true };
+  }
+
+  // A direct request to reiterate an existing agent reply is not a new email
+  // opening. Preserve the requested reply content without forcing a new greeting.
+  if (isLatestAgentReplyReiteration(context, notes)) {
     return { ok: true };
   }
 
