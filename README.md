@@ -1,34 +1,61 @@
-# SKIMS Support Assistant — Side-panel MVP
+# SKIMS Support Assistant Web
 
-## Included
-- Responsive SKIMS-inspired website designed for a narrow browser side panel.
-- Five independent ticket workspaces. Each has its own Kustomer URL, concern, intended resolution, response format, and generated draft.
-- Email, Live Chat, and SMS drafting through the existing Groq backend.
-- Fix Grammar, Copy Response, independent collapse, and independent Clear Ticket.
-- Ticket data is held in page memory only; refreshing/closing clears it.
-- Read-only design: no Kustomer messages are sent and no Kustomer records are modified.
+Private standalone SKIMS customer-support drafting workspace.
 
-## Start locally
-1. Put your existing private `.env` file inside `backend/`. Never share or commit this file.
-2. Open this project folder and double-click `start-local.bat`.
-3. The website opens at `http://127.0.0.1:8788`; the drafting API runs at `http://127.0.0.1:8787`.
-4. If Windows blocks the batch file, open two terminals: run `node backend/server.js` in one and `node frontend-server.js` in the other, then open the website URL in Chrome.
+## Features
+- Five independent ticket workspaces
+- Email, Live Chat, and SMS drafting
+- Grammar correction and response refinement
+- AI conversation insights and insight chat
+- Read-only Kustomer conversation and attachment import using the existing Kustomer API workflow
+- Groq API calls stay on the server; the API key is never placed in browser code
 
-## Kustomer conversation import
-The project includes a local, read-only import bridge. A standalone website cannot read Kustomer's authenticated session from a pasted URL, so the import uses a separate bookmarklet click in the matching Kustomer tab.
+## AI insight and internal policy knowledge
 
-1. Follow `KUSTOMER-IMPORT-SETUP.txt` to add `SKIMS-Import-Bookmarklet.txt` as a Chrome bookmark.
-2. In a ticket, paste its Kustomer conversation URL and click **Import conversation**.
-3. In the opened Kustomer tab, click the **SKIMS Import to Ticket** bookmark and enter the same ticket number (1–5).
-4. The bookmarklet checks that the active conversation matches the URL registered for that ticket, then retrieves message history and attachment details using the already-authenticated Kustomer page session.
-5. The website receives the conversation in that ticket only. The imported message history is prefilled into Customer Concern for drafting context.
+The AI Insight analyzes the full imported conversation in chronological order and focuses on three sections:
+- **Summary** — what happened and which actions are confirmed complete
+- **Customer's main concern** — the customer's current unresolved issue
+- **Suggested resolution** — the appropriate policy-based handling and next action in one section
 
-The handoff uses a short-lived one-time token, expires after 10 minutes, and runs through the local backend at `127.0.0.1`. It does not send Kustomer cookies or passwords to the local backend. Imported handoff data is held in backend memory; restarting the backend clears it. Ticket workspaces themselves are held in page memory and are cleared when the website page is refreshed or closed.
+The internal SKIMS policy knowledge base is maintained in `skimsPolicyKnowledge` in `server.js`. It currently covers the supplied SOP guidance for missing items, wrong items, international lost packages, lost in transit, dead tracking, and returned-to-sender cases. The same internal guidance is available to AI Insight, Chat with AI, response drafting, and response refinement.
 
-**Browser-security limitation:** the bookmarklet must be clicked by the user in the Kustomer tab. A standalone website cannot silently execute code inside another site's tab. If Chrome or company policy blocks the localhost connection, do not bypass the control; ask IT whether this local handoff is permitted.
+Internal procedures (macros, courtesy thresholds, claims/forms, tags, Timeline/TL notes, GE Admin, OPS/Slack handoffs, and internal ticket statuses) are agent-only and must not appear in customer-facing drafts. Add future policy updates to this knowledge base and keep the source SOP as the authority. Where a policy detail is ambiguous or missing, the assistant should flag it rather than guess.
 
-## Privacy
-- The local import bridge runs on `127.0.0.1` and holds imported conversation handoffs in backend memory only. It does not save Kustomer cookies, passwords, or API tokens.
-- Ticket workspace state is held in the open website page only; refreshing or closing the page clears it.
-- Clicking **Generate** or **Fix Grammar** sends the relevant text to the configured Groq API through your local backend.
-- Before using real customer data, confirm that the AI provider, browser bookmarklet, and localhost handoff are approved by your employer.
+## Render deployment
+Create a **new Render Web Service** connected to this repository. Keep the separate Chrome-extension repository/service unchanged.
+
+- Runtime: Node
+- Build command: `npm install`
+- Start command: `npm start`
+- Root directory: repository root
+
+Set these Render environment variables:
+- `GROQ_API_KEY`: Groq API key (secret)
+- `GROQ_MODEL`: approved model available to your Groq account
+- `APP_ACCESS_PASSWORD`: a strong private password you choose
+- `APP_ORIGIN`: exact deployed origin, e.g. `https://skims-support-assistant-web.onrender.com`, without a trailing slash
+
+The server listens on Render's `PORT`, binds to `0.0.0.0`, and serves both the website and API from this same service.
+
+## Kustomer import bookmark
+The importer reuses the existing Kustomer API workflow and sends data to the hosted Render service (not localhost). It is a browser bookmark, **not a locally installed Chrome extension**.
+
+1. Open `SKIMS-Import-Bookmarklet.txt` in this repository.
+2. Copy the entire one-line `javascript:` code.
+3. Create a Chrome bookmark named **SKIMS Import to Ticket** and paste the code into its URL field.
+4. In the SKIMS Support Assistant website, paste the exact Kustomer conversation URL into the selected ticket and click **Import conversation**.
+5. In the Kustomer tab that opens, click **SKIMS Import to Ticket** in your bookmarks bar.
+6. Keep the website open until the import completes.
+
+The bookmark reads messages and attachment metadata through the signed-in Kustomer page session, then posts the normalized conversation to `https://skims-support-assistant-web.onrender.com` using a short-lived, single-use import token. It does not send Kustomer cookies or passwords to this app. The bookmark code is configured for this hosted URL; no local server or localhost address is needed.
+
+## Security and limitations
+- Never commit `.env`, API keys, passwords, cookies, or customer conversation exports.
+- Website API endpoints require the private app password session. Import completion requires the one-time job token.
+- Ticket conversations, notes, drafts, and insight history are saved in this browser's local storage until the user clears the ticket or browser site data. Do not use shared/public browser profiles.
+- Import jobs and login sessions are held in server memory; a restart or redeploy clears them. Use one Render instance.
+- The importer is read-only and does not send replies or modify Kustomer records.
+- Confirm your employer permits the workflow and AI processing before using real customer data.
+
+## Local development
+Run `npm start` and open `http://127.0.0.1:8787`. Set `GROQ_API_KEY` and `APP_ACCESS_PASSWORD` in a local `.env` file. Never commit `.env`.

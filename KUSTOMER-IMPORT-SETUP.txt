@@ -1,38 +1,26 @@
-SKIMS SUPPORT ASSISTANT — KUSTOMER IMPORT SETUP
+SKIMS SUPPORT ASSISTANT — HOSTED KUSTOMER IMPORT SETUP
 
-What this adds
-- Each ticket keeps its own Kustomer conversation.
-- The website creates a short-lived, one-time import request for the selected ticket.
-- A separate bookmarklet runs on the open Kustomer conversation, uses your already-authenticated browser session, retrieves messages and attachment details, and sends the read-only result to the local website backend.
-- The local backend is bound to 127.0.0.1 and does not store Kustomer passwords, cookies, or API tokens.
-- Import requests expire after 10 minutes. Imported data is held in backend memory and the website's current page state; restarting the backend clears pending/imported handoffs.
+Before setup
+- Deploy this repository as its own Render Web Service.
+- Configure GROQ_API_KEY, GROQ_MODEL, APP_ACCESS_PASSWORD, and APP_ORIGIN in Render.
+- Replace the placeholder service URL in SKIMS-Import-Bookmarklet.txt with the exact Render URL.
 
-Important browser-security note
-A standalone website cannot execute code inside a Kustomer tab or read Kustomer session cookies. Therefore, the import requires one additional deliberate click on a bookmarklet in the Kustomer tab. No extension installation or policy bypass is used.
+Bookmarklet
+1. Create a Chrome bookmark named "SKIMS Import to Ticket".
+2. Edit it and paste the complete one-line contents of SKIMS-Import-Bookmarklet.txt into its URL field.
+3. Save the bookmark.
 
-Setup
-1. Extract this project folder.
-2. Keep your existing backend/.env file in place. Do not share it or paste its API key into the website.
-3. Start the backend and website using the included start-local.bat (or your usual local startup steps).
-4. In Chrome, create a new bookmark. Name it: SKIMS Import to Ticket.
-5. Edit that bookmark and paste the entire one-line contents of SKIMS-Import-Bookmarklet.txt into its URL field. Save it.
-6. Open the SKIMS Support Assistant at http://127.0.0.1:8788.
+Import
+1. Sign in to the SKIMS Support Assistant using APP_ACCESS_PASSWORD.
+2. Paste the exact Kustomer conversation URL into the intended ticket and click Import conversation.
+3. In the matching Kustomer tab, click the bookmarklet.
+4. The bookmarklet verifies the workspace and conversation, retrieves messages and attachment details through the already-authenticated Kustomer browser session, and submits the result using a short-lived, single-use token.
+5. Return to the website and review the imported history before drafting.
 
-Import workflow
-1. In the intended ticket card, paste the exact Kustomer conversation URL.
-2. Click Import conversation. The website opens the Kustomer URL in a new tab and creates a one-time request for that ticket.
-3. In the Kustomer tab, click the SKIMS Import to Ticket bookmark. It automatically matches the open conversation to the pending ticket request.
-4. If the same conversation URL is pending in multiple tickets, the bookmarklet asks you to choose the intended ticket number (1–5).
-5. The bookmarklet checks that the current Kustomer conversation matches the URL registered by that ticket, retrieves the messages and attachment details using the active session, and hands the result to the local backend.
-6. Return to the website. The conversation and attachment links should appear in that ticket. The full conversation is prefilled into Customer Concern so the drafting model can use the complete context.
-7. Enter or verify the Intended Resolution before generating a response.
-
-Troubleshooting
-- If the bookmarklet says no pending request exists, click Import conversation again in that ticket.
-- If the Kustomer URL does not match, return to the exact conversation URL you pasted into that ticket.
-- If Chrome blocks access to the local service, a browser/local-network permission or company policy may be preventing the localhost handoff. Do not bypass company controls; ask IT whether this local connection is permitted.
-- If the import expires, click Import conversation again and rerun the bookmarklet.
-- The original SKIMS Smart Reader bookmarklet is not replaced. Keep it if you still want its standalone reader and image zoom experience.
-
-Read-only scope
-This importer only reads conversations and attachment metadata/content links. It does not send replies, edit Kustomer records, or perform customer-account actions.
+Security
+- The Groq API key stays server-side.
+- Website API actions require a private login session.
+- The bookmarklet importer is read-only; it does not send replies or edit Kustomer records.
+- Import jobs and login sessions live in server memory and are cleared by a service restart/redeploy.
+- Never commit .env, API keys, passwords, cookies, or customer conversation data.
+- Confirm employer approval before using real customer information.
