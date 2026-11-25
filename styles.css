@@ -3500,3 +3500,6 @@ html[data-theme="dark"] .insight-chat-message.user { background: #755e66; color:
 html[data-theme="dark"] .insight-chat-input { background: #211d20; color: #f1e9eb; border-color: #51474b; }
 html[data-theme="dark"] .insight-chat-context, html[data-theme="dark"] .insight-chat-empty, html[data-theme="dark"] .insight-chat-status, html[data-theme="dark"] .insight-chat-typing { color: #b9aeb1; }
 @media (max-width: 560px) { .insight-popover { max-height: min(82vh, 680px); } .insight-chat-messages { max-height: 180px; } }
+
+/* Keep Insight analysis scrollable while the embedded internal chat remains visible. */
+.insight-content { flex: 1 1 auto; }
