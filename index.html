@@ -250,12 +250,20 @@
               ↻ Refresh insight
             </button>
           </div>
+
+          <div class="insight-internal-chat">
+            <button type="button" class="insight-chat-toggle" aria-expanded="false">✧ Chat with AI</button>
+            <div class="insight-chat-panel" hidden>
+              <div class="insight-chat-context">Internal discussion only · Your messages here do not become customer replies.</div>
+              <div class="insight-chat-messages" role="log" aria-live="polite"></div>
+              <div class="insight-chat-status" role="status" aria-live="polite"></div>
+              <div class="insight-chat-composer">
+                <textarea class="insight-chat-input" rows="2" maxlength="4000" placeholder="Ask about this case or SKIMS policy…"></textarea>
+                <button type="button" class="insight-chat-send">Send</button>
+              </div>
+            </div>
+          </div>
         </section>
-
-        <!-- Case Insight is reserved for structured case analysis. -->
-
-
-
       </div>
 
       <details class="sizing-assistant-section">
