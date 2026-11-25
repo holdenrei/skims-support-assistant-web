@@ -181,6 +181,10 @@ function restoreTicketData() {
       t.resolution = item.resolution || "";
       t.output = item.output || "";
       t.chat = Array.isArray(item.chat) ? item.chat : [];
+      // Preserve any earlier internal AI discussion by bringing it into the unified workspace.
+      if (!t.chat.length && Array.isArray(item.insightChat) && item.insightChat.length) {
+        t.chat = item.insightChat;
+      }
       t.conversationExpanded = Boolean(item.conversationExpanded);
       t.status = item.status || "empty";
 
@@ -959,24 +963,6 @@ function bindCard(card, t) {
 
 
   // =====================================
-  // AI CHAT SEND
-  // =====================================
-
-  const chatInput = $(card, ".insight-chat-input");
-  const sendButton = $(card, ".insight-send");
-
-  sendButton.addEventListener("click", () => {
-    sendInsightMessage(t, chatInput);
-  });
-
-  chatInput.addEventListener("keydown", e => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendInsightMessage(t, chatInput);
-    }
-  });
-
-
   // =====================================
   // IMPORT CONVERSATION
   // =====================================
