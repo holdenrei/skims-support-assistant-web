@@ -1694,7 +1694,8 @@ async function generateInsight(t) {
   t.insightLoading = true;
   t.insightError = "";
   t.insightStale = false;
-  t.insightOpen = false;
+  // Keep the Insight window's current open/closed state while refreshing.
+  // Initial analysis after import remains closed because the ticket starts closed.
   t.insightUnread = false;
 
   saveTicketData();
