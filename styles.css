@@ -3556,8 +3556,8 @@ html[data-theme="dark"] .insight-chat-context, html[data-theme="dark"] .insight-
 .insight-chat-panel .insight-chat-composer { min-width: 0; }
 @media (max-width: 780px) {
   .insight-widget > .insight-chat-panel {
-    right: 8px !important;
-    bottom: 8px !important;
+    right: 8px;
+    bottom: 8px;
     left: auto;
     top: auto;
     width: min(390px, calc(100vw - 16px));
@@ -3568,8 +3568,8 @@ html[data-theme="dark"] .insight-chat-context, html[data-theme="dark"] .insight-
 }
 @media (max-width: 560px) {
   .insight-widget > .insight-chat-panel {
-    right: 8px !important;
-    bottom: 8px !important;
+    right: 8px;
+    bottom: 8px;
     width: calc(100vw - 16px);
     height: min(70vh, 520px);
     min-width: 0;
