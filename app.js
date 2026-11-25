@@ -47,6 +47,7 @@ const tickets = Array.from({ length: 5 }, (_, i) => ({
   output: "",
   chat: [],
   chatLoading: false,
+  chatRegeneratingIndex: null,
   chatError: "",
   conversationExpanded: false,
   status: "empty",
@@ -270,6 +271,7 @@ function resetTicketState(t) {
     output: "",
     chat: [],
     chatLoading: false,
+    chatRegeneratingIndex: null,
     chatError: "",
     conversationExpanded: false,
     status: "empty",
@@ -1300,6 +1302,17 @@ function renderWorkspaceChat(card, t) {
         }
       });
       actions.append(copy);
+      if (!message.error) {
+        const regenerate = document.createElement("button");
+        regenerate.type = "button";
+        regenerate.className = "workspace-copy workspace-regenerate";
+        regenerate.title = "Regenerate response";
+        regenerate.setAttribute("aria-label", "Regenerate AI response");
+        regenerate.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 7v5h-5"></path><path d="M19 12a7 7 0 1 1-2-4.9L20 12"></path></svg>';
+        regenerate.disabled = t.chatLoading;
+        regenerate.addEventListener("click", () => regenerateWorkspaceMessage(t, index));
+        actions.append(regenerate);
+      }
       item.append(actions);
     }
     host.append(item);
@@ -1308,7 +1321,7 @@ function renderWorkspaceChat(card, t) {
   if (t.chatLoading) {
     const typing = document.createElement("div");
     typing.className = "workspace-chat-typing";
-    typing.textContent = "SKIMS AI is thinking…";
+    typing.textContent = t.chatRegeneratingIndex !== null ? "Regenerating response…" : "SKIMS AI is thinking…";
     host.append(typing);
   }
   status.textContent = t.chatError || "";
@@ -1338,6 +1351,90 @@ function classifyWorkspaceRequest(command) {
   // thanks, corrections, and discussion must never become customer drafts
   // just because they do not match a question-word pattern.
   return "discuss";
+}
+
+async function regenerateWorkspaceMessage(t, messageIndex) {
+  if (t.chatLoading) return;
+  const message = t.chat[messageIndex];
+  if (!message || message.role !== "assistant" || message.error) return;
+
+  const previousUser = t.chat[messageIndex - 1];
+  const command = String(message.prompt || (previousUser?.role === "user" ? previousUser.content : "")).trim();
+  if (!command) {
+    t.chatError = "This older response does not have enough saved information to regenerate.";
+    if (t.id === activeId) render();
+    return;
+  }
+
+  const requestType = message.kind || classifyWorkspaceRequest(command);
+  const mode = message.mode || t.mode || "email";
+  const previousDraft = String(message.previousDraft || "");
+  const recentWorkspaceDiscussion = t.chat
+    .slice(0, Math.max(0, messageIndex - 1))
+    .slice(-6)
+    .map(m => (m.role === "user" ? "Agent" : "AI") + ": " + String(m.content || "").slice(-350))
+    .join("\\n")
+    .slice(-1800);
+  const originalContent = message.content;
+
+  t.chatLoading = true;
+  t.chatRegeneratingIndex = messageIndex;
+  t.chatError = "";
+  if (t.id === activeId) render();
+  else saveTicketData();
+
+  try {
+    let reply = "";
+    if (requestType === "discuss") {
+      const messages = t.chat
+        .slice(0, messageIndex)
+        .filter(m => ["user", "assistant"].includes(m.role) && typeof m.content === "string")
+        .slice(-4)
+        .map(m => ({ role: m.role, content: m.content }));
+      const data = await apiPost("/insight-chat", {
+        customerContext: t.concern,
+        agentNotes: t.resolution,
+        caseInsight: t.insight,
+        messages
+      });
+      reply = data.reply || "";
+    } else {
+      const agentInstructions = [
+        t.resolution ? "EXISTING AGENT NOTES / SIZING CONTEXT:\\n" + t.resolution.slice(-1800) : "",
+        recentWorkspaceDiscussion ? "RECENT AI WORKSPACE DISCUSSION (background only; AI suggestions are not confirmed facts):\\n" + recentWorkspaceDiscussion : "",
+        "CURRENT AGENT INSTRUCTION:",
+        command,
+        previousDraft ? "\\nPREVIOUS AI DRAFT TO USE AS CONTEXT (revise it only if the current instruction asks for a revision):\\n" + previousDraft.slice(-1600) : ""
+      ].filter(Boolean).join("\\n");
+      const data = await apiPost("/draft", {
+        customerContext: t.concern,
+        confirmedResolution: agentInstructions,
+        caseInsight: t.insight || null,
+        mode
+      });
+      reply = data.email || data.response || "";
+    }
+    if (!reply.trim()) throw new Error("The AI returned an empty response.");
+    message.content = reply;
+    message.timestamp = Date.now();
+    if (requestType === "draft") {
+      t.output = reply;
+      t.status = "drafted";
+    }
+    t.chatError = "";
+  } catch (error) {
+    message.content = originalContent;
+    t.chatError = error.message || "Unable to regenerate this response.";
+  } finally {
+    t.chatLoading = false;
+    t.chatRegeneratingIndex = null;
+    saveTicketData();
+    if (t.id === activeId) render({
+      scrollChatToBottom: false,
+      scrollWorkspaceToLatest: false
+    });
+    else refreshNav();
+  }
 }
 
 async function sendWorkspaceMessage(card, t) {
@@ -1410,7 +1507,7 @@ async function sendWorkspaceMessage(card, t) {
     }
 
     if (!reply.trim()) throw new Error("The AI returned an empty response.");
-    t.chat.push({ role: "assistant", content: reply, timestamp: Date.now(), kind: requestType });
+    t.chat.push({ role: "assistant", content: reply, timestamp: Date.now(), kind: requestType, prompt: command, mode: t.mode, previousDraft });
     t.chatError = "";
   } catch (error) {
     t.chatError = error.message || "Unable to process your message.";
