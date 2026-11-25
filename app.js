@@ -587,6 +587,15 @@ function render(options = {}) {
 
     window.scrollTo(previousPageX, previousPageY);
 
+    // After a new AI draft is ready, bring the latest workspace response
+    // into view instead of leaving the page at its previous scroll position.
+    if (options.scrollWorkspaceToLatest) {
+      const latestWorkspaceTurn = $(card, ".workspace-chat-messages .workspace-chat-turn:last-of-type");
+      if (latestWorkspaceTurn) {
+        latestWorkspaceTurn.scrollIntoView({ behavior: "smooth", block: "end" });
+      }
+    }
+
     if (options.focusChat) {
       const newInput = $(card, ".insight-chat-input");
 
@@ -1477,7 +1486,10 @@ async function sendWorkspaceMessage(card, t) {
   } finally {
     t.chatLoading = false;
     saveTicketData();
-    if (t.id === activeId) render({ scrollChatToBottom: true });
+    if (t.id === activeId) render({
+      scrollChatToBottom: true,
+      scrollWorkspaceToLatest: true
+    });
     else refreshNav();
   }
 }
