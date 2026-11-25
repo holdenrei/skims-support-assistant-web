@@ -955,14 +955,25 @@ function setupInsightLauncherDrag(card, ticket) {
 
 function applyFloatingWindowLayout(panel, layout) {
   if (!panel || !layout) return;
-  if (Number.isFinite(layout.width)) panel.style.width = `${layout.width}px`;
-  if (Number.isFinite(layout.height)) panel.style.height = `${layout.height}px`;
+  const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+  const maxWidth = Math.max(0, window.innerWidth - 16);
+  const maxHeight = Math.max(0, window.innerHeight - 16);
+  const minWidth = Math.min(280, maxWidth);
+  const minHeight = Math.min(220, maxHeight);
+  if (Number.isFinite(layout.width)) {
+    panel.style.width = `${Math.round(clamp(layout.width, minWidth, maxWidth))}px`;
+  }
+  if (Number.isFinite(layout.height)) {
+    panel.style.height = `${Math.round(clamp(layout.height, minHeight, maxHeight))}px`;
+  }
   if (Number.isFinite(layout.left)) {
-    panel.style.left = `${layout.left}px`;
+    const width = Math.min(maxWidth, panel.getBoundingClientRect().width || maxWidth);
+    panel.style.left = `${Math.round(clamp(layout.left, 8, Math.max(8, window.innerWidth - width - 8)))}px`;
     panel.style.right = "auto";
   }
   if (Number.isFinite(layout.top)) {
-    panel.style.top = `${layout.top}px`;
+    const height = Math.min(maxHeight, panel.getBoundingClientRect().height || maxHeight);
+    panel.style.top = `${Math.round(clamp(layout.top, 8, Math.max(8, window.innerHeight - height - 8)))}px`;
     panel.style.bottom = "auto";
   }
 }
@@ -1144,8 +1155,14 @@ function bindCard(card, t) {
     render({ focusChat: t.insightChatOpen });
   });
 
-  $(card, ".insight-chat-close").addEventListener("click", () => {
+  $(card, ".insight-chat-close").addEventListener("click", event => {
+    event.preventDefault();
+    event.stopPropagation();
     t.insightChatOpen = false;
+    const panel = $(card, ".insight-chat-panel");
+    const toggle = $(card, ".insight-chat-toggle");
+    if (panel) panel.hidden = true;
+    if (toggle) toggle.setAttribute("aria-expanded", "false");
     saveTicketData();
     render();
   });
