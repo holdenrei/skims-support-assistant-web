@@ -3422,3 +3422,51 @@ html[data-theme="dark"] .attachment-chip {
   opacity: .45;
   cursor: wait;
 }
+
+/* AI Insight dark-mode typography: softer, brighter text with consistent font weights. */
+html[data-theme="dark"] .insight-popover-head strong,
+html[data-theme="dark"] .insight-chat-head strong,
+html[data-theme="dark"] .insight-welcome strong {
+  color: #f0e7eb;
+  font-family: inherit;
+  font-weight: 650;
+}
+html[data-theme="dark"] .insight-popover-head small,
+html[data-theme="dark"] .insight-chat-head small,
+html[data-theme="dark"] .insight-status,
+html[data-theme="dark"] .insight-chat-status {
+  color: #bbaeb5;
+  font-family: inherit;
+  font-weight: 400;
+}
+html[data-theme="dark"] .insight-item strong {
+  color: #dfb7c3;
+  font-family: inherit;
+  font-weight: 650;
+  letter-spacing: .07em;
+}
+html[data-theme="dark"] .insight-item p,
+html[data-theme="dark"] .insight-welcome p,
+html[data-theme="dark"] .insight-message-text {
+  color: #e2d9de;
+  font-family: inherit;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-shadow: none;
+}
+html[data-theme="dark"] .insight-message.user .insight-message-text {
+  color: #fff4f7;
+}
+html[data-theme="dark"] .insight-message.assistant {
+  background: #302930;
+  border-color: #51434c;
+}
+html[data-theme="dark"] .insight-close,
+html[data-theme="dark"] .insight-chat-close {
+  background: #3a3037;
+  color: #eee2e7;
+}
+html[data-theme="dark"] .insight-close:hover,
+html[data-theme="dark"] .insight-chat-close:hover {
+  background: #4a3a43;
+}
