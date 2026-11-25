@@ -1373,7 +1373,7 @@ async function regenerateWorkspaceMessage(t, messageIndex) {
     .slice(0, Math.max(0, messageIndex - 1))
     .slice(-6)
     .map(m => (m.role === "user" ? "Agent" : "AI") + ": " + String(m.content || "").slice(-350))
-    .join("\\n")
+    .join("\n")
     .slice(-1800);
   const originalContent = message.content;
 
