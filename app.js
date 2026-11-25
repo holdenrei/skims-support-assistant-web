@@ -74,6 +74,50 @@ let ticketSelectionMode = false;
 
 const $ = (root, selector) => root.querySelector(selector);
 const getTicket = id => tickets.find(t => t.id === id);
+function deriveTicketCustomerLabel(data, messages, sourceUrl) {
+  const clean = value => String(value || "").replace(/\s+/g, " ").trim();
+  const usable = value => {
+    const text = clean(value);
+    return text && !/^(customer|unknown|new customer|guest|n\/a|null|undefined)$/i.test(text) ? text : "";
+  };
+  const suppliedName = usable(data && data.customerName);
+  if (suppliedName) return suppliedName;
+  const allMessages = Array.isArray(messages) ? messages : [];
+  const customerMessages = allMessages.filter(message => {
+    const sender = clean(message && (message.sender || message.author));
+    const direction = clean(message && message.direction).toLowerCase();
+    return direction === "in" || /customer|end user/i.test(sender);
+  });
+  const candidates = customerMessages.length ? customerMessages : allMessages;
+  const emailPattern = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i;
+  for (const message of candidates) {
+    const direct = clean(message && (message.customerEmail || message.email));
+    const match = direct.match(emailPattern) || clean(message && (message.text || message.body)).match(emailPattern);
+    if (match) return match[0];
+  }
+  const phonePattern = /(?:\+?\d[\d().\s-]{7,}\d)/;
+  for (const message of candidates) {
+    const direct = clean(message && (message.customerPhone || message.phone));
+    const match = direct.match(phonePattern) || clean(message && (message.text || message.body)).match(phonePattern);
+    if (match) {
+      const digits = match[0].replace(/\D/g, "");
+      if (digits.length >= 8 && digits.length <= 15) return match[0].trim();
+    }
+  }
+  try {
+    const parsed = new URL(sourceUrl);
+    for (const key of ["customerName", "name", "customer", "email", "phone"]) {
+      const value = usable(parsed.searchParams.get(key));
+      if (value) return value;
+    }
+  } catch {}
+  for (const message of customerMessages) {
+    const sender = usable(message && (message.sender || message.author));
+    if (sender) return sender;
+  }
+  return "";
+}
+
 
 
 // =====================================
@@ -332,7 +376,7 @@ function render(options = {}) {
     label.className = "nav-label";
 
     const title = document.createElement("b");
-    title.textContent = `Ticket ${t.id}`;
+    title.textContent = t.customerName || `Ticket ${t.id}`;
 
     const subtitle = document.createElement("small");
 
@@ -1856,7 +1900,7 @@ async function waitForImport(t) {
         ? data.attachments
         : [];
 
-      t.customerName = data.customerName || "";
+      t.customerName = deriveTicketCustomerLabel(data, t.conversation, data.sourceUrl || t.url);
       t.status = "imported";
 
       const importedHistory = t.conversation.map(m => {
