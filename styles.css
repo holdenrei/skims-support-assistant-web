@@ -3349,3 +3349,53 @@ html[data-theme="dark"] .insight-dot { border-color: #292229; }
   }
   .insight-spark { font-size: 21px; }
 }
+
+
+/* Dark theme refinements: keep both application and sign-in footers visible,
+   and soften conversation typography for comfortable reading. */
+html[data-theme="dark"] .footer,
+html[data-theme="dark"] .login-footer {
+  background: #201c20;
+  border-top-color: #40363d;
+  color: #c0b5bb;
+}
+html[data-theme="dark"] .footer > span:first-child {
+  color: #d2bdc5;
+}
+html[data-theme="dark"] .footer-credit {
+  color: #c0aeb7;
+}
+html[data-theme="dark"] .footer-credit b {
+  color: #eadde2;
+}
+html[data-theme="dark"] .message-row {
+  background: #292429;
+  border-color: #40383e;
+}
+html[data-theme="dark"] .message-row.agent-message {
+  background: #332a30;
+  border-color: #4b3d45;
+}
+html[data-theme="dark"] .message-row.internal-note {
+  background: #302b25;
+  border-color: #554a38;
+}
+html[data-theme="dark"] .message-row strong {
+  color: #dfcbd3;
+  font-size: 11px;
+  font-weight: 600;
+}
+html[data-theme="dark"] .message-row p {
+  color: #d7cfd3;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.75;
+}
+html[data-theme="dark"] .message-time {
+  color: #a99ca3;
+  font-weight: 400;
+}
+html[data-theme="dark"] .message-attachment,
+html[data-theme="dark"] .attachment-chip {
+  color: #d7b8c4;
+}
