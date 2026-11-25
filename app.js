@@ -182,9 +182,23 @@ function restoreTicketData() {
       t.resolution = item.resolution || "";
       t.output = item.output || "";
       t.chat = Array.isArray(item.chat) ? item.chat : [];
-      // Preserve any earlier internal AI discussion by bringing it into the unified workspace.
-      if (!t.chat.length && Array.isArray(item.insightChat) && item.insightChat.length) {
-        t.chat = item.insightChat;
+      t.insightChat = Array.isArray(item.insightChat) ? item.insightChat : [];
+      // Move identifiable internal-chat turns out of the drafting history.
+      const migratedIndexes = new Set();
+      t.chat.forEach((message, index) => {
+        if (message && message.role === "assistant" && message.kind === "discuss") {
+          const previous = t.chat[index - 1];
+          if (previous && previous.role === "user") {
+            t.insightChat.push(previous, message);
+            migratedIndexes.add(index - 1);
+          } else {
+            t.insightChat.push(message);
+          }
+          migratedIndexes.add(index);
+        }
+      });
+      if (migratedIndexes.size) {
+        t.chat = t.chat.filter((_, index) => !migratedIndexes.has(index));
       }
       t.conversationExpanded = Boolean(item.conversationExpanded);
       t.status = item.status || "empty";
@@ -196,10 +210,6 @@ function restoreTicketData() {
       t.customerName = item.customerName || "";
       t.insight = item.insight || null;
       t.insightWindowLayout = item.insightWindowLayout || {};
-
-      t.insightChat = Array.isArray(item.insightChat)
-        ? item.insightChat
-        : [];
 
       t.insightStale = Boolean(item.insightStale);
       t.insightChatError = item.insightChatError || "";
@@ -662,6 +672,97 @@ function render(options = {}) {
 // AS TWO INDEPENDENT WINDOWS
 // =====================================
 
+function renderInsightChat(card, t) {
+  const host = $(card, ".insight-chat-messages");
+  const input = $(card, ".insight-chat-input");
+  const send = $(card, ".insight-chat-send");
+  const status = $(card, ".insight-chat-status");
+  const panel = $(card, ".insight-chat-panel");
+  const toggle = $(card, ".insight-chat-toggle");
+  if (!host || !panel || !toggle) return;
+
+  panel.hidden = !t.insightChatOpen;
+  toggle.setAttribute("aria-expanded", String(t.insightChatOpen));
+  toggle.textContent = t.insightChatOpen ? "− Close Chat with AI" : "✧ Chat with AI";
+  host.replaceChildren();
+
+  if (!t.insightChat.length) {
+    const empty = document.createElement("p");
+    empty.className = "insight-chat-empty";
+    empty.textContent = "Ask internal questions about this case, SKIMS policies, or possible next steps. This chat is for you, not the customer.";
+    host.append(empty);
+  }
+
+  t.insightChat.forEach(message => {
+    const item = document.createElement("div");
+    item.className = "insight-chat-message " + (message.role === "user" ? "user" : "assistant");
+    const label = document.createElement("strong");
+    label.textContent = message.role === "user" ? "You" : "AI";
+    const body = document.createElement("p");
+    body.textContent = message.content || "";
+    item.append(label, body);
+    host.append(item);
+  });
+
+  if (t.insightChatLoading) {
+    const typing = document.createElement("p");
+    typing.className = "insight-chat-typing";
+    typing.textContent = "AI is thinking…";
+    host.append(typing);
+  }
+  status.textContent = t.insightChatError || "";
+  send.disabled = t.insightChatLoading;
+  input.disabled = t.insightChatLoading;
+  send.textContent = t.insightChatLoading ? "Thinking…" : "Send";
+  host.scrollTop = host.scrollHeight;
+}
+
+async function sendInsightChat(card, t) {
+  const input = $(card, ".insight-chat-input");
+  const command = input.value.trim();
+  if (!command || t.insightChatLoading) return;
+  if (!t.concern.trim()) {
+    t.insightChatError = "Import the customer conversation before discussing the case.";
+    render();
+    return;
+  }
+
+  t.insightChat.push({ role: "user", content: command, timestamp: Date.now() });
+  t.insightChatLoading = true;
+  t.insightChatError = "";
+  const requestId = ++t.insightChatRequestId;
+  input.value = "";
+  saveTicketData();
+  render();
+
+  try {
+    const messages = t.insightChat
+      .filter(message => ["user", "assistant"].includes(message.role) && typeof message.content === "string")
+      .slice(-8)
+      .map(message => ({ role: message.role, content: message.content }));
+    const data = await apiPost("/insight-chat", {
+      customerContext: t.concern,
+      agentNotes: t.resolution,
+      caseInsight: t.insight,
+      messages
+    });
+    if (requestId !== t.insightChatRequestId) return;
+    const reply = String(data.reply || "").trim();
+    if (!reply) throw new Error("The AI returned an empty response.");
+    t.insightChat.push({ role: "assistant", content: reply, timestamp: Date.now() });
+    t.insightUnread = false;
+  } catch (error) {
+    if (requestId === t.insightChatRequestId) t.insightChatError = error.message || "Unable to get an AI response.";
+  } finally {
+    if (requestId === t.insightChatRequestId) {
+      t.insightChatLoading = false;
+      saveTicketData();
+      if (t.id === activeId) render({ scrollChatToBottom: true, focusChat: true });
+      else refreshNav();
+    }
+  }
+}
+
 function renderInsight(card, t) {
   const launcher = $(card, ".insight-launcher");
   const insightPopover = $(card, ".insight-popover");
@@ -730,6 +831,7 @@ function renderInsight(card, t) {
 
   refresh.disabled = t.insightLoading;
   refresh.textContent = t.insightLoading ? "Analyzing…" : "↻ Refresh insight";
+  renderInsightChat(card, t);
 }
 
 // =====================================
@@ -961,6 +1063,20 @@ function bindCard(card, t) {
 
   $(card, ".insight-refresh").addEventListener("click", () => {
     generateInsight(t);
+  });
+
+  $(card, ".insight-chat-toggle").addEventListener("click", () => {
+    t.insightChatOpen = !t.insightChatOpen;
+    saveTicketData();
+    render({ focusChat: t.insightChatOpen });
+  });
+
+  $(card, ".insight-chat-send").addEventListener("click", () => sendInsightChat(card, t));
+  $(card, ".insight-chat-input").addEventListener("keydown", event => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      sendInsightChat(card, t);
+    }
   });
 
 
@@ -1331,28 +1447,9 @@ function renderWorkspaceChat(card, t) {
   host.scrollTop = host.scrollHeight;
 }
 
-function classifyWorkspaceRequest(command) {
-  const text = String(command || "").trim();
-  if (!text) return "discuss";
-
-  // Draft only when the agent clearly asks for customer-facing wording.
-  // Merely mentioning a customer, response, or message is not enough.
-  const explicitCustomerOutput =
-    /\b(?:draft|write|compose|prepare|generate|create|craft|produce)\b.{0,100}\b(?:customer[- ]facing|customer|client|reply|response|email|sms|live chat|chat message)\b/i.test(text) ||
-    /\b(?:reply|respond|write back|send a message)\s+(?:to|for)\s+(?:the\s+)?(?:customer|client)\b/i.test(text) ||
-    /\b(?:inform|tell|ask|request|advise|notify|let)\s+(?:the\s+)?(?:customer|client|cx)\b.{0,120}\b(?:to|that|about|whether|if)\b/i.test(text) ||
-    /\b(?:customer|client|cx)\b.{0,80}\b(?:to provide|to send|to resend|to submit|to confirm|to check|to contact|to know)\b/i.test(text) ||
-    /\b(?:customer|client)\s+(?:reply|response|email|sms|message)\b.{0,50}\b(?:draft|write|compose|prepare|generate|create|craft)\b/i.test(text) ||
-    /\bturn\s+(?:this|that|it)\s+into\s+(?:a\s+)?(?:customer[- ]facing\s+)?(?:reply|response|email|message)\b/i.test(text) ||
-    /\b(?:revise|rewrite|reword|polish|shorten|expand|edit|improve|adjust|change)\b.{0,80}\b(?:draft|customer reply|customer response|email|sms|message|previous response|previous reply|last response|last reply|this response|that response|this reply|that reply)\b/i.test(text) ||
-    /\bmake\s+(?:this|it|the\s+(?:draft|response|reply|email|message))\s+(?:warmer|friendlier|more professional|more empathetic|shorter|clearer|more concise|less formal)\b/i.test(text);
-
-  if (explicitCustomerOutput) return "draft";
-
-  // Internal conversation is the safe default. Questions, acknowledgements,
-  // thanks, corrections, and discussion must never become customer drafts
-  // just because they do not match a question-word pattern.
-  return "discuss";
+function classifyWorkspaceRequest() {
+  // AI Workspace is exclusively for customer-facing SKIMS response drafting.
+  return "draft";
 }
 
 async function regenerateWorkspaceMessage(t, messageIndex) {
@@ -1363,22 +1460,14 @@ async function regenerateWorkspaceMessage(t, messageIndex) {
   const previousUser = t.chat[messageIndex - 1];
   const command = String(message.prompt || (previousUser?.role === "user" ? previousUser.content : "")).trim();
   if (!command) {
-    t.chatError = "This older response does not have enough saved information to regenerate.";
+    t.chatError = "This response does not have enough saved information to regenerate.";
     if (t.id === activeId) render();
     return;
   }
 
-  const requestType = message.kind || classifyWorkspaceRequest(command);
   const mode = message.mode || t.mode || "email";
   const previousDraft = String(message.previousDraft || "");
-  const recentWorkspaceDiscussion = t.chat
-    .slice(0, Math.max(0, messageIndex - 1))
-    .slice(-6)
-    .map(m => (m.role === "user" ? "Agent" : "AI") + ": " + String(m.content || "").slice(-350))
-    .join("\n")
-    .slice(-1800);
   const originalContent = message.content;
-
   t.chatLoading = true;
   t.chatRegeneratingIndex = messageIndex;
   t.chatError = "";
@@ -1386,43 +1475,24 @@ async function regenerateWorkspaceMessage(t, messageIndex) {
   else saveTicketData();
 
   try {
-    let reply = "";
-    if (requestType === "discuss") {
-      const messages = t.chat
-        .slice(0, messageIndex)
-        .filter(m => ["user", "assistant"].includes(m.role) && typeof m.content === "string")
-        .slice(-4)
-        .map(m => ({ role: m.role, content: m.content }));
-      const data = await apiPost("/insight-chat", {
-        customerContext: t.concern,
-        agentNotes: t.resolution,
-        caseInsight: t.insight,
-        messages
-      });
-      reply = data.reply || "";
-    } else {
-      const agentInstructions = [
-        t.resolution ? "EXISTING AGENT NOTES / SIZING CONTEXT:\\n" + t.resolution.slice(-1800) : "",
-        recentWorkspaceDiscussion ? "RECENT AI WORKSPACE DISCUSSION (background only; AI suggestions are not confirmed facts):\\n" + recentWorkspaceDiscussion : "",
-        "CURRENT AGENT INSTRUCTION:",
-        command,
-        previousDraft ? "\\nPREVIOUS AI DRAFT TO USE AS CONTEXT (revise it only if the current instruction asks for a revision):\\n" + previousDraft.slice(-1600) : ""
-      ].filter(Boolean).join("\\n");
-      const data = await apiPost("/draft", {
-        customerContext: t.concern,
-        confirmedResolution: agentInstructions,
-        caseInsight: t.insight || null,
-        mode
-      });
-      reply = data.email || data.response || "";
-    }
+    const agentInstructions = [
+      t.resolution ? "EXISTING AGENT NOTES / SIZING CONTEXT:\n" + t.resolution.slice(-1800) : "",
+      "CURRENT AGENT INSTRUCTION:\n" + command,
+      previousDraft ? "PREVIOUS AI DRAFT (use as context only when the instruction asks for a revision):\n" + previousDraft.slice(-1600) : ""
+    ].filter(Boolean).join("\n\n");
+    const data = await apiPost("/draft", {
+      customerContext: t.concern,
+      confirmedResolution: agentInstructions,
+      caseInsight: t.insight || null,
+      mode
+    });
+    const reply = data.email || data.response || "";
     if (!reply.trim()) throw new Error("The AI returned an empty response.");
     message.content = reply;
     message.timestamp = Date.now();
-    if (requestType === "draft") {
-      t.output = reply;
-      t.status = "drafted";
-    }
+    message.kind = "draft";
+    t.output = reply;
+    t.status = "drafted";
     t.chatError = "";
   } catch (error) {
     message.content = originalContent;
@@ -1431,10 +1501,7 @@ async function regenerateWorkspaceMessage(t, messageIndex) {
     t.chatLoading = false;
     t.chatRegeneratingIndex = null;
     saveTicketData();
-    if (t.id === activeId) render({
-      scrollChatToBottom: false,
-      scrollWorkspaceToLatest: false
-    });
+    if (t.id === activeId) render({ scrollChatToBottom: false, scrollWorkspaceToLatest: false });
     else refreshNav();
   }
 }
@@ -1445,12 +1512,12 @@ async function sendWorkspaceMessage(card, t) {
   if (!command || t.chatLoading) return;
 
   if (!t.concern.trim()) {
-    t.chatError = "Import the Kustomer conversation before asking the AI about this case.";
+    t.chatError = "Import the Kustomer conversation before generating a customer response.";
     statusForComposer(card, t.chatError);
     return;
   }
 
-  t.mode = $(card, ".workspace-format").value || "none";
+  t.mode = $(card, ".workspace-format").value || "email";
   t.chat.push({ role: "user", content: command, timestamp: Date.now() });
   t.chatLoading = true;
   t.chatError = "";
@@ -1458,69 +1525,36 @@ async function sendWorkspaceMessage(card, t) {
   saveTicketData();
   renderWorkspaceChat(card, t);
 
-  const requestType = classifyWorkspaceRequest(command);
   const revisionRequest = /\b(?:revise|rewrite|reword|edit|polish|shorten|expand|rework|change it|adjust it|make it (?:more|less|shorter|longer|warmer|friendlier|more professional|more empathetic)|the previous draft|the previous response|the last draft|the last response|your last response|your previous response|this draft|that draft|this response|that response)\b/i.test(command);
   const previousDraft = revisionRequest
     ? (t.output || [...t.chat.slice(0, -1)].reverse().find(m => m.role === "assistant" && m.kind === "draft" && !m.error)?.content || "")
     : "";
-  const recentWorkspaceDiscussion = t.chat
-    .slice(0, -1)
-    .slice(-6)
-    .map(m => (m.role === "user" ? "Agent" : "AI") + ": " + String(m.content || "").slice(-350))
-    .join("\n")
-    .slice(-1800);
 
   try {
-    let reply = "";
-
-    if (requestType === "discuss") {
-      const messages = t.chat
-        .filter(m => ["user", "assistant"].includes(m.role) && typeof m.content === "string")
-        .slice(-4)
-        .map(m => ({ role: m.role, content: m.content }));
-
-      const data = await apiPost("/insight-chat", {
-        customerContext: t.concern,
-        agentNotes: t.resolution,
-        caseInsight: t.insight,
-        messages
-      });
-      reply = data.reply || "";
-    } else {
-      const agentInstructions = [
-        t.resolution ? "EXISTING AGENT NOTES / SIZING CONTEXT:\\n" + t.resolution.slice(-1800) : "",
-        recentWorkspaceDiscussion ? "RECENT AI WORKSPACE DISCUSSION (background only; AI suggestions are not confirmed facts):\\n" + recentWorkspaceDiscussion : "",
-        "CURRENT AGENT INSTRUCTION:",
-        command,
-        previousDraft ? "\\nPREVIOUS AI DRAFT TO USE AS CONTEXT (revise it only if the current instruction asks for a revision):\\n" + previousDraft.slice(-1600) : ""
-      ].filter(Boolean).join("\\n");
-
-      const data = await apiPost("/draft", {
-        customerContext: t.concern,
-        confirmedResolution: agentInstructions,
-        caseInsight: t.insight || null,
-        mode: t.mode
-      });
-      reply = data.email || data.response || "";
-      if (reply.trim()) {
-        t.output = reply;
-        t.status = "drafted";
-      }
-    }
-
+    const agentInstructions = [
+      t.resolution ? "EXISTING AGENT NOTES / SIZING CONTEXT:\n" + t.resolution.slice(-1800) : "",
+      "CURRENT AGENT INSTRUCTION:\n" + command,
+      previousDraft ? "PREVIOUS AI DRAFT (use as context only when the instruction asks for a revision):\n" + previousDraft.slice(-1600) : ""
+    ].filter(Boolean).join("\n\n");
+    const data = await apiPost("/draft", {
+      customerContext: t.concern,
+      confirmedResolution: agentInstructions,
+      caseInsight: t.insight || null,
+      mode: t.mode
+    });
+    const reply = data.email || data.response || "";
     if (!reply.trim()) throw new Error("The AI returned an empty response.");
-    t.chat.push({ role: "assistant", content: reply, timestamp: Date.now(), kind: requestType, prompt: command, mode: t.mode, previousDraft });
+    t.output = reply;
+    t.status = "drafted";
+    t.chat.push({ role: "assistant", content: reply, timestamp: Date.now(), kind: "draft", prompt: command, mode: t.mode, previousDraft });
     t.chatError = "";
   } catch (error) {
-    t.chatError = error.message || "Unable to process your message.";
-    t.chat.push({ role: "assistant", content: "I couldn't complete that request: " + t.chatError, timestamp: Date.now(), error: true });
+    t.chatError = error.message || "Unable to generate the customer response.";
+    t.chat.push({ role: "assistant", content: "I couldn't generate that response: " + t.chatError, timestamp: Date.now(), error: true, kind: "draft", prompt: command, mode: t.mode, previousDraft });
   } finally {
     t.chatLoading = false;
     saveTicketData();
-    if (t.id === activeId) render({
-      scrollChatToBottom: true,
-      scrollWorkspaceToLatest: true
-    });
+    if (t.id === activeId) render({ scrollChatToBottom: true, scrollWorkspaceToLatest: true });
     else refreshNav();
   }
 }
