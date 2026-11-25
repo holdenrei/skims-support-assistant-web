@@ -828,33 +828,33 @@ function validateEmailOpening(draft, customerContext, confirmedResolution) {
   if (!text) return { ok: false, reason: "The AI returned an empty email." };
 
   // Internal team messages are not customer-facing emails, even if Email is selected.
-  if (/\\b(?:internal team|inquiry team|warehouse team|internal handoff|message to the team|for the team)\\b/i.test(notes)) {
+  if (/\b(?:internal team|inquiry team|warehouse team|internal handoff|message to the team|for the team)\b/i.test(notes)) {
     return { ok: true };
   }
 
   // Only treat the case as an ongoing email when an earlier AGENT message
   // already contains the required SKIMS email introduction.
   const priorAgentOpening =
-    /(?:^|\\n)Agent(?:\\s+·[^\\n]*)?:[\\s\\S]{0,1800}?Thank you for contacting SKIMS!/i.test(context);
+    /(?:^|\n)Agent(?:\s+·[^\n]*)?:[\s\S]{0,1800}?Thank you for contacting SKIMS!/i.test(context);
 
-  const lines = text.split(/\\r?\\n/).map(line => line.trim()).filter(Boolean);
+  const lines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
   if (!lines.length) return { ok: false, reason: "The email is empty." };
 
-  const startsWithUnderstanding = /^I understand\\b/i.test(lines[0]);
+  const startsWithUnderstanding = /^I understand\b/i.test(lines[0]);
   if (priorAgentOpening) {
     return startsWithUnderstanding
       ? { ok: true }
       : { ok: false, reason: "For an ongoing email exchange, the first substantive sentence must begin with a personalized 'I understand...' acknowledgment." };
   }
 
-  const validGreeting = /^(?:Hi|Hello)\\s+[^,]+,\\s*$/i.test(lines[0]);
+  const validGreeting = /^(?:Hi|Hello)\s+[^,]+,\s*$/i.test(lines[0]);
   if (!validGreeting) {
     return { ok: false, reason: "A first customer-facing email must begin with 'Hi [Customer Name],' or 'Hello [Customer Name],' (use 'Hi there,' when the name is unavailable)." };
   }
   if (lines[1] !== "Thank you for contacting SKIMS!") {
     return { ok: false, reason: "The line immediately after the greeting must be exactly 'Thank you for contacting SKIMS!'." };
   }
-  if (!/^I understand\\b/i.test(lines[2] || "")) {
+  if (!/^I understand\b/i.test(lines[2] || "")) {
     return { ok: false, reason: "The first substantive sentence immediately after the required introduction must begin with a personalized 'I understand...' acknowledgment." };
   }
 
