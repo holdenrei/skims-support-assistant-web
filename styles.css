@@ -3475,9 +3475,9 @@ html[data-theme="dark"] .insight-chat-close:hover {
 /* =========================================
    INTERNAL AI CHAT INSIDE CASE INSIGHT
 ========================================= */
-.insight-internal-chat { flex: none; border-top: 1px solid #f0e7e5; padding-top: 10px; }
-.insight-chat-toggle { width: 100%; padding: 9px 11px; border: 1px solid #e5d2cf; border-radius: 9px; background: #fbf2f0; color: #72545b; text-align: left; font: inherit; font-size: 11px; font-weight: 750; cursor: pointer; }
-.insight-chat-toggle:hover { background: #f5e8e5; }
+.insight-internal-chat { flex: none; }
+.insight-chat-toggle { display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 8px 11px; border: 1px solid var(--rose-dark); border-radius: 8px; background: var(--rose); color: var(--accent-dark); text-align: center; font: inherit; font-size: 11px; font-weight: 650; line-height: 1.4; cursor: pointer; transition: background .2s ease, border-color .2s ease; }
+.insight-chat-toggle:hover { background: var(--rose-hover); border-color: var(--accent); }
 .insight-chat-panel { display: flex; flex-direction: column; gap: 8px; padding-top: 9px; }
 .insight-chat-panel[hidden] { display: none !important; }
 .insight-chat-context { color: var(--muted); font-size: 9px; line-height: 1.45; }
