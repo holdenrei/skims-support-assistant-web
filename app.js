@@ -1382,14 +1382,26 @@ function renderWorkspaceChat(card, t) {
       copy.type = "button";
       copy.className = "workspace-copy";
       copy.title = "Copy response";
+      const copyIcon = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="8" y="8" width="12" height="12" rx="2"></rect><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"></path></svg>';
+      const copiedIcon = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m5 12 4 4L19 6"></path></svg>';
       copy.setAttribute("aria-label", "Copy AI response");
-      copy.textContent = "▢";
+      copy.innerHTML = copyIcon;
+      let copyResetTimer;
       copy.addEventListener("click", async () => {
         try {
           await navigator.clipboard.writeText(message.content);
-          copy.textContent = "✓";
+          copy.innerHTML = copiedIcon;
+          copy.classList.add("is-copied");
           copy.title = "Copied";
-          setTimeout(() => { if (copy.isConnected) { copy.textContent = "▢"; copy.title = "Copy response"; } }, 1200);
+          copy.setAttribute("aria-label", "Copied");
+          clearTimeout(copyResetTimer);
+          copyResetTimer = setTimeout(() => {
+            if (!copy.isConnected) return;
+            copy.innerHTML = copyIcon;
+            copy.classList.remove("is-copied");
+            copy.title = "Copy response";
+            copy.setAttribute("aria-label", "Copy AI response");
+          }, 1400);
         } catch {
           status.textContent = "Copy is unavailable in this browser context.";
         }
